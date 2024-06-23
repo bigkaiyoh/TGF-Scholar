@@ -22,7 +22,7 @@ def get_input():
     return information
 
 def main():
-    st.title("英語プログラムにっけ")
+    st.title("英語志望動機書対策ニッケ")
 
     information = get_input()
     
