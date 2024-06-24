@@ -1,6 +1,7 @@
 import streamlit as st
 from modules import run_assistant
 
+
 # Initialize assistant
 assistant = st.secrets.Unicke_id
 
@@ -9,6 +10,21 @@ st.set_page_config(
     page_icon="🎓",
     layout="wide"
 )
+
+# Custom CSS for improved styling
+st.markdown("""
+<style>
+    .main-title {
+        font-size: 50px;
+        text-align: center;
+        color: #0097b2;
+    }
+    .stButton>button {
+        width: 100%;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 
 def get_input():
     col1, col2 = st.columns(2)
@@ -21,17 +37,17 @@ def get_input():
     with col2:
         st.subheader("志望動機書")
         txt = st.text_area("こちらに志望動機書を入力してください", height=200)
-        st.write(f'現在の文字数: {len(txt.split())} 文字')
+        st.info(f'現在の文字数: {len(txt.split())} 文字')
 
     information = f"University: {uni_name}\nProgram: {program_name}\n\nWriting: {txt}"
     return information, uni_name, program_name, txt
 
 
 def main():
-    st.title("🎓 英語志望動機書対策ニッケ")
-    st.markdown("このアプリは、あなたの英語の志望動機書を評価し、フィードバックを提供します。")
+    st.markdown("<h1 class='main-title'>🎓 英語志望動機書対策ニッケ</h1>", unsafe_allow_html=True)
+    st.info("このアプリは、あなたの英語の志望動機書を評価し、フィードバックを提供します。")
 
-    with st.expander("使い方", expanded=True):
+    with st.expander("📌使い方", expanded=False):
         st.markdown("""
         1. 志望校名と学部名を入力してください。
         2. 志望動機書を入力欄に貼り付けるか直接入力してください。
@@ -41,7 +57,7 @@ def main():
     information, uni_name, program_name, txt = get_input()
     
     # 提出ボタン
-    submit_button = st.button("採点する", type="primary")
+    submit_button = st.button("採点する🚀", type="primary")
 
     # 評価表示画面
     if submit_button:
@@ -62,7 +78,8 @@ def main():
         
         st.subheader("AIからのフィードバック")
         feedback = run_assistant(assistant_id=assistant, txt=information, return_content=True, display_chat=False)
-        
+        st.success("評価が完了しました！")
+
         # Display feedback in a styled box with background color
         st.markdown(f"""
             <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #e8f4f8;">
