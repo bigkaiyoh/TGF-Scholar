@@ -1,5 +1,6 @@
 import streamlit as st
 from modules import run_assistant
+from vocabvan import vocabvan_interface
 
 
 # Initialize assistant
@@ -33,6 +34,7 @@ def get_input():
         st.subheader("基本情報")
         uni_name = st.text_input("志望校名", placeholder="例: 早稲田大学")
         program_name = st.text_input("学部名", placeholder="例: SILS")
+
     
     with col2:
         st.subheader("志望動機書")
@@ -53,6 +55,10 @@ def main():
         2. 志望動機書を入力欄に貼り付けるか直接入力してください。
         3. 「採点する」ボタンをクリックして、AIによる評価を受けてください。
         """)
+
+    # Chatbot Button and Popover
+    with st.popover("🧠 AIに質問"):
+        vocabvan_interface()
 
     information, uni_name, program_name, txt = get_input()
     
@@ -87,6 +93,8 @@ def main():
             </div>
         """, unsafe_allow_html=True)
 
+
+    
 
 
 if __name__ == "__main__":

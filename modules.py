@@ -31,7 +31,7 @@ def run_assistant(assistant_id, txt, return_content=False, display_chat=True):
         )
 
         # Spinner for ongoing process
-        with st.spinner('AIが評価中です。しばらくお待ちください...'):
+        with st.spinner('One moment...'):
             while True:
                 # Retrieve the run status
                 run_status = st.session_state.client.beta.threads.runs.retrieve(
