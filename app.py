@@ -1,6 +1,13 @@
 import streamlit as st
 from modules import run_assistant
 from vocabvan import vocabvan_interface
+import json
+
+# Load the university data from the JSON file
+with open('programs.json', 'r') as f:
+    data = json.load(f)
+# Extract the university names and programs
+uni_names = [uni["name"] for uni in data["universities"]] + ["Other"]
 
 
 # Initialize assistant
@@ -32,8 +39,16 @@ def get_input():
     
     with col1:
         st.subheader("基本情報")
-        uni_name = st.text_input("志望校名", placeholder="例: 早稲田大学")
-        program_name = st.text_input("学部名", placeholder="例: SILS")
+
+        # Create a select box for university names
+        uni_name = st.selectbox("志望校名", options=uni_names)
+
+        # Based on the selected university, create a select box for program names
+        program_name = ""
+        for uni in data["universities"]:
+            if uni["name"] == uni_name:
+                program_name = st.selectbox("学部名", options=uni["programs"] + ["Other"]) 
+                break
 
     
     with col2:

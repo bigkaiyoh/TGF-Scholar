@@ -1,0 +1,22 @@
+{
+    "universities": [
+      {
+        "name": "Waseda University",
+        "programs": [
+          "SILS (School of International Liberal Studies)",
+          "SPSE (School of Political Science and Economics)",
+          "TAISI (Transnational and Interdisciplinary Studies in Social Innovation)",
+          "SFSE (School of Fundamental Science and Engineering)"
+        ]
+      },
+      {
+        "name": "Sophia University",
+        "programs": [
+          "FLA (Faculty of Liberal Arts)",
+          "SPSF (Faculty of Global Studies)",
+          "FST (Faculty of Science and Technology)"
+        ]
+      }
+    ]
+  }
+  
