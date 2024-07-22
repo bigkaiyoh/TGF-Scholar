@@ -2,7 +2,7 @@ import streamlit as st
 from modules import run_assistant, convert_image_to_text, get_secret
 from vocabvan import vocabvan_interface
 import json
-from auth import register_user, login_user
+from auth import register_user, login_user, logout_user
 from firebase_setup import db
 
 
@@ -128,6 +128,9 @@ def main():
             user_data = user_ref.get().to_dict()
             st.write(f"University: {user_data['university']}")
             st.write(f"Program: {user_data['program']}")
+            if st.button("Logout"):
+                logout_user()
+                st.rerun()
 
         with st.expander("📌使い方", expanded=True):
             st.markdown("""
