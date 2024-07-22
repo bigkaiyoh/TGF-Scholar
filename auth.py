@@ -1,39 +1,45 @@
 import streamlit as st
-import firebase_admin
-from firebase_admin import auth, credentials, firestore
+from firebase_admin import firestore
 import bcrypt
+from firebase_setup import db
 
 def register_user(email, password, university, program):
     try:
-        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-        user = auth.create_user(email=email, password=password)
-        user_ref = db.collection('users').document(user.uid)
-        user_ref.set({
+        # Check if user already exists
+        user_ref = db.collection('users').where('email', '==', email).limit(1).get()
+        if len(user_ref) > 0:
+            return None, "User with this email already exists"
+
+        # Hash password
+        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+        # Create new user document
+        new_user = db.collection('users').add({
             'email': email,
-            'password': hashed_password.decode(),
+            'password': hashed_password,
             'university': university,
             'program': program
         })
-        st.success("Registration successful!")
-        return {"email": email, "uid": user.uid}
+
+        return {"email": email, "uid": new_user[1].id}, "Registration successful"
     except Exception as e:
-        st.error(f"Registration failed: {str(e)}")
-        return None
+        return None, f"Registration failed: {str(e)}"
 
 def login_user(email, password):
     try:
-        users = db.collection('users').where('email', '==', email).stream()
-        for user in users:
-            user_data = user.to_dict()
-            if bcrypt.checkpw(password.encode(), user_data['password'].encode()):
-                st.success("Login successful!")
-                return {"email": email, "uid": user.id}
-        st.error("Invalid email or password")
-        return None
+        user_ref = db.collection('users').where('email', '==', email).limit(1).get()
+        if not user_ref:
+            return None, "Invalid email or password"
+
+        user_data = user_ref[0].to_dict()
+        if bcrypt.checkpw(password.encode(), user_data['password'].encode()):
+            return {"email": email, "uid": user_ref[0].id, "university": user_data['university'], "program": user_data['program']}, "Login successful"
+        else:
+            return None, "Invalid email or password"
     except Exception as e:
-        st.error(f"Login failed: {str(e)}")
-        return None
+        return None, f"Login failed: {str(e)}"
 
 def logout_user():
-    st.session_state.user = None
-    st.success("Logout successful!")
+    if 'user' in st.session_state:
+        del st.session_state['user']
+    return "Logout successful"

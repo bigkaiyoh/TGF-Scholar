@@ -70,39 +70,53 @@ def main():
     st.info("このアプリは、あなたの英語の志望動機書を評価し、フィードバックを提供します。")
 
     # Authentication
-    if st.session_state.user is None:
+    if 'user' not in st.session_state or st.session_state.user is None:
         choice = st.radio("Choose an option", ["Login", "Register"])
 
         if choice == "Register":
-            email = st.text_input("Email")
-            password = st.text_input("Password", type="password")
-            university = st.text_input("University")
-            program = st.text_input("Program")
-            if st.button("Register"):
-                user = register_user(email, password, university, program)
-                if user:
-                    st.success("Registration successful!")
-                    st.session_state.user = user
+            with st.form("register_form"):
+                email = st.text_input("Email")
+                password = st.text_input("Password", type="password")
+                university = st.text_input("University")
+                program = st.text_input("Program")
+                submit_button = st.form_submit_button("Register")
+
+                if submit_button:
+                    user, message = register_user(email, password, university, program)
+                    if user:
+                        st.success(message)
+                        st.session_state.user = user
+                        st.rerun()
+                    else:
+                        st.error(message)
 
         elif choice == "Login":
-            email = st.text_input("Email")
-            password = st.text_input("Password", type="password")
-            if st.button("Login"):
-                user = login_user(email, password)
-                if user:
-                    st.session_state.user = user
+            with st.form("login_form"):
+                email = st.text_input("Email")
+                password = st.text_input("Password", type="password")
+                submit_button = st.form_submit_button("Login")
 
+                if submit_button:
+                    user, message = login_user(email, password)
+                    if user:
+                        st.success(message)
+                        st.session_state.user = user
+                        st.rerun()
+                    else:
+                        st.error(message)
 
     else:
-        uni_name = st.session_state.user['university']
-        program_name = st.session_state.user['program']
+        user = st.session_state.user
+        uni_name = user['university']
+        program_name = user['program']
+
         with st.sidebar:
-            email = st.session_state.user['email']
-            st.write(f"Welcome, {email}!")
+            st.write(f"Welcome, {user['email']}!")
             st.write(f"University: {uni_name}")
             st.write(f"Program: {program_name}")
             if st.button("Logout"):
-                logout_user()
+                message = logout_user()
+                st.success(message)
                 st.rerun()
 
         with st.expander("📌使い方", expanded=True):
@@ -118,7 +132,7 @@ def main():
             vocabvan_interface()
 
         txt = get_input()
-        information = f"University: {uni_name}\nProgram: {program}\n\nWriting: {txt}"
+        information = f"University: {uni_name}\nProgram: {program_name}\n\nWriting: {txt}"
         
         # 提出ボタン
         submit_button = st.button("採点する🚀", type="primary")
