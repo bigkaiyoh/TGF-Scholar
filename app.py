@@ -98,6 +98,7 @@ def main():
     st.info("このアプリは、あなたの英語の志望動機書を評価し、フィードバックを提供します。")
 
     # Authentication
+    # Authentication
     if st.session_state.user is None:
         choice = st.radio("Choose an option", ["Login", "Register"])
 
@@ -110,7 +111,7 @@ def main():
                 user = register_user(email, password, university, program)
                 if user:
                     st.success("Registration successful!")
-                    st.session_state.user = user
+                    st.session_state.user = {"email": email, "uid": user.uid}
 
         elif choice == "Login":
             email = st.text_input("Email")
@@ -118,7 +119,7 @@ def main():
             if st.button("Login"):
                 user = login_user(email, password)
                 if user:
-                    st.session_state.user = user
+                    st.session_state.user = {"email": email, "uid": user.uid}
 
     else:
         with st.sidebar:
