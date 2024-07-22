@@ -21,8 +21,16 @@ def register_user(email, password, university, program):
             'program': program
         })
 
-        return {"email": email, "uid": new_user[1].id}, "Registration successful"
+        # Return user data in the expected format
+        user_data = {
+            "email": email,
+            "uid": new_user[1].id,
+            "university": university,
+            "program": program
+        }
+        return user_data, "Registration successful"
     except Exception as e:
+        print(f"Registration error: {str(e)}")  # For debugging
         return None, f"Registration failed: {str(e)}"
 
 def login_user(email, password):

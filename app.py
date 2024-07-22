@@ -82,10 +82,10 @@ def main():
                 submit_button = st.form_submit_button("Register")
 
                 if submit_button:
-                    user, message = register_user(email, password, university, program)
-                    if user:
+                    user_data, message = register_user(email, password, university, program)
+                    if user_data:
                         st.success(message)
-                        st.session_state.user = user
+                        st.session_state.user = user_data
                         st.rerun()
                     else:
                         st.error(message)
