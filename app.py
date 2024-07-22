@@ -6,16 +6,8 @@ from auth import register_user, login_user, logout_user
 from firebase_setup import db
 
 
-# Load the university data from the JSON file
-with open('programs.json', 'r') as f:
-    data = json.load(f)
-# Extract the university names and programs
-uni_names = [uni["name"] for uni in data["universities"]] + ["Other"]
-
-
 # Initialize assistant
 secrets = get_secret()
-
 assistant = secrets['Unicke_id']
 
 # Initialize session state
@@ -48,56 +40,35 @@ st.markdown("""
 
 
 def get_input():
-    col1, col2 = st.columns([2, 3])
+    st.subheader("志望動機書")
+    txt = st.text_area("こちらに志望動機書を入力してください", height=220, value=st.session_state.txt)
+    st.info(f'現在の文字数: {len(txt.split())} 文字')
+
+    uploaded_file = st.file_uploader(
+        "ファイルをアップロードしてください",
+        type=["pdf", "jpg", "jpeg", "png"],
+        help="手書きの志望動機書やPDFファイルを評価するためにご利用ください"
+    )
     
-    with col1:
-        st.subheader("基本情報")
+    if uploaded_file is not None and not st.session_state.transcription_done:
+        # Transcribe the uploaded file
+        with st.spinner("Reading..."):
+            try:
+                result = convert_image_to_text(uploaded_file)
+                st.session_state.txt = result  # Update session state
+                st.session_state.transcription_done = True
+                st.success("Transcription completed successfully!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"An error occurred: {str(e)}")
 
-        # Create a select box for university names
-        uni_name = st.selectbox("志望校名", options=uni_names)
-
-        # Based on the selected university, create a select box for program names
-        program_name = ""
-        for uni in data["universities"]:
-            if uni["name"] == uni_name:
-                program_name = st.selectbox("学部名", options=uni["programs"] + ["Other"]) 
-                break
-
-        # File uploader for additional input method with help text
-        uploaded_file = st.file_uploader(
-            "ファイルをアップロードしてください",
-            type=["pdf", "jpg", "jpeg", "png"],
-            help="手書きの志望動機書やPDFファイルを評価するためにご利用ください"
-        )
-        
-        if uploaded_file is not None and not st.session_state.transcription_done:
-            # Transcribe the uploaded file
-            with st.spinner("Reading..."):
-                try:
-                    result = convert_image_to_text(uploaded_file)
-                    st.session_state.txt = result  # Update session state
-                    st.session_state.transcription_done = True
-                    st.success("Transcription completed successfully!")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"An error occurred: {str(e)}")
-
-    
-    with col2:
-        st.subheader("志望動機書")
-        txt = st.text_area("こちらに志望動機書を入力してください", height=220, value = st.session_state.txt)
-        st.info(f'現在の文字数: {len(txt.split())} 文字')
-
-
-    information = f"University: {uni_name}\nProgram: {program_name}\n\nWriting: {txt}"
-    return information, uni_name, program_name, txt
+    return txt
 
 
 def main():
     st.markdown("<h1 class='main-title'>🎓 英語志望動機書対策ニッケ</h1>", unsafe_allow_html=True)
     st.info("このアプリは、あなたの英語の志望動機書を評価し、フィードバックを提供します。")
 
-    # Authentication
     # Authentication
     if st.session_state.user is None:
         choice = st.radio("Choose an option", ["Login", "Register"])
@@ -111,7 +82,7 @@ def main():
                 user = register_user(email, password, university, program)
                 if user:
                     st.success("Registration successful!")
-                    st.session_state.user = {"email": email, "uid": user.uid}
+                    st.session_state.user = {"email": email, "uid": user.uid, "university": university, "program": program}
 
         elif choice == "Login":
             email = st.text_input("Email")
@@ -120,15 +91,19 @@ def main():
                 user = login_user(email, password)
                 if user:
                     st.session_state.user = {"email": email, "uid": user.uid}
+                    user_ref = db.collection('users').document(user.uid)
+                    user_data = user_ref.get().to_dict()
+                    st.session_state.user.update({"university": user_data['university'], "program": user_data['program']})
+
 
     else:
+        uni_name = user_data['university']
+        program_name = user_data['program']
         with st.sidebar:
-            email = st.session_state.user.email
+            email = st.session_state.user['email']
             st.write(f"Welcome, {email}!")
-            user_ref = db.collection('users').document(st.session_state.user.uid)
-            user_data = user_ref.get().to_dict()
-            st.write(f"University: {user_data['university']}")
-            st.write(f"Program: {user_data['program']}")
+            st.write(f"University: {uni_name}")
+            st.write(f"Program: {program_name}")
             if st.button("Logout"):
                 logout_user()
                 st.rerun()
@@ -145,7 +120,8 @@ def main():
         with st.popover("🧠 AIに質問"):
             vocabvan_interface()
 
-        information, uni_name, program_name, txt = get_input()
+        txt = get_input()
+        information = f"University: {uni_name}\nProgram: {program}\n\nWriting: {txt}"
         
         # 提出ボタン
         submit_button = st.button("採点する🚀", type="primary")
@@ -181,8 +157,6 @@ def main():
                 </div>
             """, unsafe_allow_html=True)
 
-
-    
 
 
 if __name__ == "__main__":
