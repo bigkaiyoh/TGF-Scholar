@@ -82,7 +82,7 @@ def main():
                 user = register_user(email, password, university, program)
                 if user:
                     st.success("Registration successful!")
-                    st.session_state.user = {"email": email, "uid": user.uid, "university": university, "program": program}
+                    st.session_state.user = user
 
         elif choice == "Login":
             email = st.text_input("Email")
@@ -90,15 +90,12 @@ def main():
             if st.button("Login"):
                 user = login_user(email, password)
                 if user:
-                    st.session_state.user = {"email": email, "uid": user.uid}
-                    user_ref = db.collection('users').document(user.uid)
-                    user_data = user_ref.get().to_dict()
-                    st.session_state.user.update({"university": user_data['university'], "program": user_data['program']})
+                    st.session_state.user = user
 
 
     else:
-        uni_name = user_data['university']
-        program_name = user_data['program']
+        uni_name = st.session_state.user['university']
+        program_name = st.session_state.user['program']
         with st.sidebar:
             email = st.session_state.user['email']
             st.write(f"Welcome, {email}!")
