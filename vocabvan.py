@@ -1,8 +1,10 @@
 import streamlit as st
-from modules import run_assistant
+from modules import run_assistant, get_secret
 
 def vocabvan_interface():
-    assistant = st.secrets.AI_uKnow
+    secrets = get_secret()
+    assistant = secrets['AI_uKnow']
+    
 
     user_input = st.chat_input("疑問を入力してください")
     

@@ -3,3 +3,8 @@ unicke-firebase-adminsdk-l7s4j-d04bf19ccb.json
 
 # OS-specific files
 .DS_Store
+
+google-cloud-sdk/
+*.pyc
+__pycache__/
+*.p12

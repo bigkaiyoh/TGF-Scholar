@@ -1,9 +1,10 @@
 import streamlit as st
-from modules import run_assistant, convert_image_to_text
+from modules import run_assistant, convert_image_to_text, get_secret
 from vocabvan import vocabvan_interface
 import json
 from auth import register_user, login_user
 from firebase_setup import db
+
 
 # Load the university data from the JSON file
 with open('programs.json', 'r') as f:
@@ -13,7 +14,9 @@ uni_names = [uni["name"] for uni in data["universities"]] + ["Other"]
 
 
 # Initialize assistant
-assistant = st.secrets.Unicke_id
+secrets = get_secret()
+
+assistant = secrets['Unicke_id']
 
 # Initialize session state
 if 'txt' not in st.session_state:

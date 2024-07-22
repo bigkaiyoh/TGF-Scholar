@@ -4,11 +4,22 @@ import time
 from PIL import Image
 import base64
 import requests
-import io
+from google.cloud import secretmanager
+import json
 
-api = st.secrets.api_key
+def get_secret():
+    client = secretmanager.SecretManagerServiceClient()
+    name = f"projects/581656499945/secrets/unicke_apis/versions/latest"
+    response = client.access_secret_version(request={"name": name})
+    secret_string = response.payload.data.decode("UTF-8")
+    return json.loads(secret_string)
+
+secrets = get_secret()
+api = secrets['api_key']
 # #Initialize OpenAI client and set default assistant_id
 client = OpenAI(api_key=api)
+
+
 
 def run_assistant(assistant_id, txt, return_content=False, display_chat=True):
     # if 'client' not in st.session_state:
