@@ -2,6 +2,7 @@ import streamlit as st
 from firebase_admin import firestore
 import bcrypt
 from firebase_setup import db
+from datetime import datetime, timedelta
 
 def register_user(email, password, university, program):
     try:
@@ -13,13 +14,16 @@ def register_user(email, password, university, program):
         # Hash password
         hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
-        # Create new user document
+        # Calculate the expiration date (30 days from now)
+        expire_at = datetime.now() + timedelta(days=30)
+
+        # Create new user document with expireAt field
         new_user = db.collection('users').add({
             'email': email,
             'password': hashed_password,
             'university': university,
             'program': program,
-            'creation_date': firestore.SERVER_TIMESTAMP  # Add creation date for TTL
+            'expireAt': expire_at  # Add expireAt field for TTL
         })
 
         # Return user data in the expected format
