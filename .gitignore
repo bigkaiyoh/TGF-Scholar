@@ -5,7 +5,7 @@ oldversion.py
 # OS-specific files
 .DS_Store
 
-google-cloud-sdk/
+
 *.pyc
 __pycache__/
 *.p12

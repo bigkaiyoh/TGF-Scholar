@@ -4,6 +4,7 @@ from vocabvan import vocabvan_interface
 import json
 from auth import register_user, login_user, logout_user
 from firebase_setup import db
+from streamlit_option_menu import option_menu
 
 
 # Initialize assistant
@@ -34,6 +35,12 @@ st.markdown("""
     }
     .stButton>button {
         width: 100%;
+    }
+    .auth-form {
+        background-color: #f0f8ff;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -71,39 +78,58 @@ def main():
 
     # Authentication
     if 'user' not in st.session_state or st.session_state.user is None:
-        choice = st.radio("Choose an option", ["Login", "Register"])
+        choice = option_menu(
+            menu_title=None,
+            options=["Login", "Register"],
+            icons=["box-arrow-in-right", "person-plus"],
+            menu_icon="cast",
+            default_index=0,
+            orientation="horizontal",
+        )
+
+        st.markdown("<div class='auth-form'>", unsafe_allow_html=True)
 
         if choice == "Register":
             with st.form("register_form"):
-                email = st.text_input("Email")
-                password = st.text_input("Password", type="password")
-                university = st.text_input("University")
-                program = st.text_input("Program")
-                submit_button = st.form_submit_button("Register")
+                st.subheader("Create an Account")
+                email = st.text_input("Email", placeholder="Enter your email")
+                password = st.text_input("Password", type="password", placeholder="Enter a strong password")
+                university = st.text_input("University", placeholder="Enter your university")
+                program = st.text_input("Program", placeholder="Enter your program")
+                submit_button = st.form_submit_button("Register", use_container_width=True)
 
                 if submit_button:
-                    user_data, message = register_user(email, password, university, program)
-                    if user_data:
-                        st.success(message)
-                        st.session_state.user = user_data
-                        st.rerun()
+                    if email and password and university and program:
+                        user_data, message = register_user(email, password, university, program)
+                        if user_data:
+                            st.success(message)
+                            st.session_state.user = user_data
+                            st.rerun()
+                        else:
+                            st.error(message)
                     else:
-                        st.error(message)
+                        st.warning("Please fill in all fields.")
 
         elif choice == "Login":
             with st.form("login_form"):
-                email = st.text_input("Email")
-                password = st.text_input("Password", type="password")
-                submit_button = st.form_submit_button("Login")
+                st.subheader("Login to Your Account")
+                email = st.text_input("Email", placeholder="Enter your email")
+                password = st.text_input("Password", type="password", placeholder="Enter your password")
+                submit_button = st.form_submit_button("Login", use_container_width=True)
 
                 if submit_button:
-                    user, message = login_user(email, password)
-                    if user:
-                        st.success(message)
-                        st.session_state.user = user
-                        st.rerun()
+                    if email and password:
+                        user, message = login_user(email, password)
+                        if user:
+                            st.success(message)
+                            st.session_state.user = user
+                            st.rerun()
+                        else:
+                            st.error(message)
                     else:
-                        st.error(message)
+                        st.warning("Please enter both email and password.")
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
     else:
         user = st.session_state.user
