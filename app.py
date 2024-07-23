@@ -74,64 +74,68 @@ def get_input():
 
 def main():
     st.markdown("<h1 class='main-title'>🎓 英語志望動機書対策ニッケ</h1>", unsafe_allow_html=True)
-    st.info("このアプリは、あなたの英語の志望動機書を評価し、フィードバックを提供します。")
-
+    
     # Authentication
     if 'user' not in st.session_state or st.session_state.user is None:
-        choice = option_menu(
-            menu_title=None,
-            options=["Login", "Register"],
-            icons=["box-arrow-in-right", "person-plus"],
-            menu_icon="cast",
-            default_index=0,
-            orientation="horizontal",
-        )
+        # Center the content
+        _, col, _ = st.columns([1, 2, 1])
 
-        st.markdown("<div class='auth-form'>", unsafe_allow_html=True)
+        with col:
+            choice = option_menu(
+                menu_title=None,
+                options=["Login", "Register"],
+                icons=["box-arrow-in-right", "person-plus"],
+                menu_icon="cast",
+                default_index=0,
+                orientation="horizontal",
+            )
 
-        if choice == "Register":
-            with st.form("register_form"):
-                st.subheader("Create an Account")
-                email = st.text_input("Email", placeholder="Enter your email")
-                password = st.text_input("Password", type="password", placeholder="Enter a strong password")
-                university = st.text_input("University", placeholder="Enter your university")
-                program = st.text_input("Program", placeholder="Enter your program")
-                submit_button = st.form_submit_button("Register", use_container_width=True)
+            st.markdown("<div class='auth-form'>", unsafe_allow_html=True)
 
-                if submit_button:
-                    if email and password and university and program:
-                        user_data, message = register_user(email, password, university, program)
-                        if user_data:
-                            st.success(message)
-                            st.session_state.user = user_data
-                            st.rerun()
+            if choice == "Register":
+                with st.form("register_form"):
+                    st.subheader("Create an Account")
+                    email = st.text_input("Email", placeholder="Enter your email")
+                    password = st.text_input("Password", type="password", placeholder="Enter a strong password")
+                    university = st.text_input("University", placeholder="Enter your university")
+                    program = st.text_input("Program", placeholder="Enter your program")
+                    submit_button = st.form_submit_button("Register", use_container_width=True)
+
+                    if submit_button:
+                        if email and password and university and program:
+                            user_data, message = register_user(email, password, university, program)
+                            if user_data:
+                                st.success(message)
+                                st.session_state.user = user_data
+                                st.rerun()
+                            else:
+                                st.error(message)
                         else:
-                            st.error(message)
-                    else:
-                        st.warning("Please fill in all fields.")
+                            st.warning("Please fill in all fields.")
 
-        elif choice == "Login":
-            with st.form("login_form"):
-                st.subheader("Login to Your Account")
-                email = st.text_input("Email", placeholder="Enter your email")
-                password = st.text_input("Password", type="password", placeholder="Enter your password")
-                submit_button = st.form_submit_button("Login", use_container_width=True)
+            elif choice == "Login":
+                with st.form("login_form"):
+                    st.subheader("Login to Your Account")
+                    email = st.text_input("Email", placeholder="Enter your email")
+                    password = st.text_input("Password", type="password", placeholder="Enter your password")
+                    submit_button = st.form_submit_button("Login", use_container_width=True)
 
-                if submit_button:
-                    if email and password:
-                        user, message = login_user(email, password)
-                        if user:
-                            st.success(message)
-                            st.session_state.user = user
-                            st.rerun()
+                    if submit_button:
+                        if email and password:
+                            user, message = login_user(email, password)
+                            if user:
+                                st.success(message)
+                                st.session_state.user = user
+                                st.rerun()
+                            else:
+                                st.error(message)
                         else:
-                            st.error(message)
-                    else:
-                        st.warning("Please enter both email and password.")
+                            st.warning("Please enter both email and password.")
 
-        st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
 
     else:
+        st.info("このアプリは、あなたの英語の志望動機書を評価し、フィードバックを提供します。")
         user = st.session_state.user
         uni_name = user['university']
         program_name = user['program']
