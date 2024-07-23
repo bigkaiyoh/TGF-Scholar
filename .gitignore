@@ -1,5 +1,6 @@
 secrets.toml
 unicke-firebase-adminsdk-l7s4j-d04bf19ccb.json
+unicke-e1319c4c88c6.json
 oldversion.py
 
 # OS-specific files
@@ -8,4 +9,4 @@ oldversion.py
 google-cloud-sdk/
 *.pyc
 __pycache__/
-*.p12
+*.p12unicke-e1319c4c88c6.json
