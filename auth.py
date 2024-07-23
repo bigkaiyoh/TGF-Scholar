@@ -18,7 +18,8 @@ def register_user(email, password, university, program):
             'email': email,
             'password': hashed_password,
             'university': university,
-            'program': program
+            'program': program,
+            'creation_date': firestore.SERVER_TIMESTAMP  # Add creation date for TTL
         })
 
         # Return user data in the expected format
