@@ -71,6 +71,15 @@ def get_input():
 
     return txt
 
+def fetch_organization_name(org_code):
+    """Fetch the organization name using the org_code."""
+    org_name = ""
+    if org_code:
+        org_ref = db.collection('organizations').document(org_code).get()
+        if org_ref.exists:
+            org_name = org_ref.to_dict().get('org_name', "")
+    return org_name
+
 
 def main():
     st.markdown("<h1 class='main-title'>🎓 英語志望動機書対策ニッケ</h1>", unsafe_allow_html=True)
@@ -98,8 +107,8 @@ def main():
                     user_id = st.text_input("User ID", placeholder="Enter a unique user ID")
                     email = st.text_input("Email", placeholder="Enter your email")
                     password = st.text_input("Password", type="password", placeholder="Enter a strong password")
-                    university = st.text_input("University", placeholder="Enter your university")
-                    program = st.text_input("Program", placeholder="Enter your program")
+                    university = st.text_input("University you're applying to", placeholder="Enter the university you're applying to")
+                    program = st.text_input("Program you're applying to", placeholder="Enter the program you're applying to")
                     org_code = st.text_input("Organization Code", placeholder="Enter your organization code")
                     submit_button = st.form_submit_button("Register", use_container_width=True)
 
@@ -142,10 +151,16 @@ def main():
         uni_name = user['university']
         program_name = user['program']
 
+        # Fetch organization name using org_code
+        org_code = user.get('org_code')
+        org_name = fetch_organization_name(org_code)
+
         with st.sidebar:
-            st.write(f"Welcome, User ID: {user['id']}!")
-            st.write(f"University: {uni_name}")
-            st.write(f"Program: {program_name}")
+            st.write(f"おかえりなさい  {user['id']} さん!")
+            st.write(f"志望校: {uni_name}")
+            st.write(f"志望学部: {program_name}")
+            if org_name:
+                st.write(f"所属: {org_name}")
             if st.button("Logout"):
                 message = logout_user()
                 st.success(message)
