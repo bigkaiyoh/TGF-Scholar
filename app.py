@@ -155,7 +155,6 @@ def main():
         program_name = user['program']
 
         # Fetch organization name using org_code
-        org_code = user.get('org_code')
         org_name = get_org_name(user['org_code'])
 
         with st.sidebar:
@@ -163,7 +162,7 @@ def main():
             st.write(f"志望校: {uni_name}")
             st.write(f"志望学部: {program_name}")
             st.write(f"所属: {org_name}")
-            
+
             if st.button("Logout"):
                 message = logout_user()
                 st.success(message)
