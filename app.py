@@ -178,7 +178,7 @@ def main():
             """, unsafe_allow_html=True)
 
             # Save submission using the dedicated function
-            save_submission(user['id'], txt, uni_name, program_name)
+            # save_submission(user['id'], txt, uni_name, program_name)
 
 
 
