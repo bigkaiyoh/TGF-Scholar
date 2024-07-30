@@ -34,7 +34,8 @@ def register_user(user_id, email, password, university, program, org_code):
             "email": email,
             "id": user_id,
             "university": university,
-            "program": program
+            "program": program,
+            "org_code": org_code  # Ensure org_code is included in the returned data
         }
         return user_data, "Registration successful"
     except Exception as e:
@@ -49,7 +50,13 @@ def login_user(user_id, password):
 
         user_data = user_ref.to_dict()
         if bcrypt.checkpw(password.encode(), user_data['password'].encode()):
-            return {"id": user_id, "email": user_data['email'], "university": user_data['university'], "program": user_data['program']}, "Login successful"
+            return {
+                "id": user_id,
+                "email": user_data['email'],
+                "university": user_data['university'],
+                "program": user_data['program'],
+                "org_code": user_data['org_code']  # Ensure org_code is included in the returned data
+            }, "Login successful"
         else:
             return None, "Invalid ID or password"
     except Exception as e:
