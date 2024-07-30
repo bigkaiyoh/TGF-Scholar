@@ -71,14 +71,17 @@ def get_input():
 
     return txt
 
-def fetch_organization_name(org_code):
-    """Fetch the organization name using the org_code."""
-    org_name = ""
-    if org_code:
+def get_org_name(org_code):
+    try:
         org_ref = db.collection('organizations').document(org_code).get()
         if org_ref.exists:
-            org_name = org_ref.to_dict().get('org_name', "")
-    return org_name
+            org_data = org_ref.to_dict()
+            return org_data.get('org_name', 'Organization not found')
+        else:
+            return 'Organization not found'
+    except Exception as e:
+        st.error(f"Error retrieving organization name: {e}")
+        return 'Error occurred'
 
 
 def main():
@@ -153,14 +156,14 @@ def main():
 
         # Fetch organization name using org_code
         org_code = user.get('org_code')
-        org_name = fetch_organization_name(org_code)
+        org_name = get_org_name(user['org_code'])
 
         with st.sidebar:
             st.write(f"おかえりなさい  {user['id']} さん!")
             st.write(f"志望校: {uni_name}")
             st.write(f"志望学部: {program_name}")
-            if org_name:
-                st.write(f"所属: {org_name}")
+            st.write(f"所属: {org_name}")
+            
             if st.button("Logout"):
                 message = logout_user()
                 st.success(message)
