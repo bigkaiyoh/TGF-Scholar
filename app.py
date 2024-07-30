@@ -241,25 +241,25 @@ def main():
                         else:
                             st.warning("Please enter both user ID and password.")
 
-            # Organization Login
-            st.markdown("<hr>", unsafe_allow_html=True)
-            st.subheader("Organization Login")
-            with st.form("org_login_form"):
-                org_code = st.text_input("Organization Code", placeholder="Enter your organization code")
-                org_password = st.text_input("Password", type="password", placeholder="Enter your organization password")
-                org_submit_button = st.form_submit_button("Login as Organization", use_container_width=True)
+                # Organization Login
+                st.markdown("<hr>", unsafe_allow_html=True)
+                st.subheader("Organization Login")
+                with st.form("org_login_form"):
+                    org_code = st.text_input("Organization Code", placeholder="Enter your organization code")
+                    org_password = st.text_input("Password", type="password", placeholder="Enter your organization password")
+                    org_submit_button = st.form_submit_button("Login as Organization", use_container_width=True)
 
-                if org_submit_button:
-                    if org_code and org_password:
-                        org, message = login_organization(org_code, org_password)
-                        if org:
-                            st.success(message)
-                            st.session_state.organization = org
-                            st.rerun()
+                    if org_submit_button:
+                        if org_code and org_password:
+                            org, message = login_organization(org_code, org_password)
+                            if org:
+                                st.success(message)
+                                st.session_state.organization = org
+                                st.rerun()
+                            else:
+                                st.error(message)
                         else:
-                            st.error(message)
-                    else:
-                        st.warning("Please enter both organization code and password.")
+                            st.warning("Please enter both organization code and password.")
 
             st.markdown("</div>", unsafe_allow_html=True)
 
