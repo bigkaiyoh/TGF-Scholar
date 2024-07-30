@@ -89,10 +89,10 @@ def get_org_name(org_code):
 
 def save_submission(user_id, txt, uni_name, program_name):
     try:
-        db.collection('submissions').add({
-            'user_id': user_id,
+        user_ref = db.collection('users').document(user_id)
+        user_ref.collection('submissions').add({
             'text': txt,
-            'submit_time': datetime.now(),
+            'submit_time': datetime.utcnow(),
             'university': uni_name,
             'program': program_name
         })
@@ -178,7 +178,7 @@ def main():
             """, unsafe_allow_html=True)
 
             # Save submission using the dedicated function
-            # save_submission(user['id'], txt, uni_name, program_name)
+            save_submission(user['id'], txt, uni_name, program_name)
 
 
 
