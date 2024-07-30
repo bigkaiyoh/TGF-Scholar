@@ -95,15 +95,17 @@ def main():
             if choice == "Register":
                 with st.form("register_form"):
                     st.subheader("Create an Account")
+                    user_id = st.text_input("User ID", placeholder="Enter a unique user ID")
                     email = st.text_input("Email", placeholder="Enter your email")
                     password = st.text_input("Password", type="password", placeholder="Enter a strong password")
                     university = st.text_input("University", placeholder="Enter your university")
                     program = st.text_input("Program", placeholder="Enter your program")
+                    org_code = st.text_input("Organization Code", placeholder="Enter your organization code")
                     submit_button = st.form_submit_button("Register", use_container_width=True)
 
                     if submit_button:
-                        if email and password and university and program:
-                            user_data, message = register_user(email, password, university, program)
+                        if user_id and email and password and university and program and org_code:
+                            user_data, message = register_user(user_id, email, password, university, program, org_code)
                             if user_data:
                                 st.success(message)
                                 st.session_state.user = user_data
@@ -116,13 +118,13 @@ def main():
             elif choice == "Login":
                 with st.form("login_form"):
                     st.subheader("Login to Your Account")
-                    email = st.text_input("Email", placeholder="Enter your email")
+                    user_id = st.text_input("User ID", placeholder="Enter your user ID")
                     password = st.text_input("Password", type="password", placeholder="Enter your password")
                     submit_button = st.form_submit_button("Login", use_container_width=True)
 
                     if submit_button:
-                        if email and password:
-                            user, message = login_user(email, password)
+                        if user_id and password:
+                            user, message = login_user(user_id, password)
                             if user:
                                 st.success(message)
                                 st.session_state.user = user
@@ -130,7 +132,7 @@ def main():
                             else:
                                 st.error(message)
                         else:
-                            st.warning("Please enter both email and password.")
+                            st.warning("Please enter both user ID and password.")
 
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -141,7 +143,7 @@ def main():
         program_name = user['program']
 
         with st.sidebar:
-            st.write(f"Welcome, {user['email']}!")
+            st.write(f"Welcome, User ID: {user['id']}!")
             st.write(f"University: {uni_name}")
             st.write(f"Program: {program_name}")
             if st.button("Logout"):
