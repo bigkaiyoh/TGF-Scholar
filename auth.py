@@ -66,3 +66,20 @@ def logout_user():
     if 'user' in st.session_state:
         del st.session_state['user']
     return "Logout successful"
+
+def login_organization(org_code, password):
+    try:
+        org_ref = db.collection('organizations').document(org_code).get()
+        if not org_ref.exists:
+            return None, "Invalid organization code or password"
+
+        org_data = org_ref.to_dict()
+        if org_data['password'] == password:  # Direct comparison as password is stored in plain text
+            return {
+                "org_code": org_code,
+                "org_name": org_data['org_name']
+            }, "Organization login successful"
+        else:
+            return None, "Invalid organization code or password"
+    except Exception as e:
+        return None, f"Organization login failed: {str(e)}"

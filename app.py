@@ -2,7 +2,8 @@ import streamlit as st
 from modules import run_assistant, convert_image_to_text, get_secret
 from vocabvan import vocabvan_interface
 import json
-from auth import register_user, login_user, logout_user
+from auth import register_user, login_user, logout_user, login_organization
+from pages.organization_dashboard import show_dashboard
 from firebase_setup import db
 from streamlit_option_menu import option_menu
 
@@ -17,6 +18,8 @@ if 'txt' not in st.session_state:
 if 'transcription_done' not in st.session_state:
     st.session_state.transcription_done = False
 if 'user' not in st.session_state:
+    st.session_state.user = None
+if 'organization' not in st.session_state:
     st.session_state.user = None
 
 st.set_page_config(
@@ -146,9 +149,34 @@ def main():
                         else:
                             st.warning("Please enter both user ID and password.")
 
+            # Organization Login
+            st.markdown("<hr>", unsafe_allow_html=True)
+            st.subheader("Organization Login")
+            with st.form("org_login_form"):
+                org_code = st.text_input("Organization Code", placeholder="Enter your organization code")
+                org_password = st.text_input("Password", type="password", placeholder="Enter your organization password")
+                org_submit_button = st.form_submit_button("Login as Organization", use_container_width=True)
+
+                if org_submit_button:
+                    if org_code and org_password:
+                        org, message = login_organization(org_code, org_password)
+                        if org:
+                            st.success(message)
+                            st.session_state.organization = org
+                            st.rerun()
+                        else:
+                            st.error(message)
+                    else:
+                        st.warning("Please enter both organization code and password.")
+
             st.markdown("</div>", unsafe_allow_html=True)
 
-    else:
+    elif 'organization' in st.session_state and st.session_state.organization:
+        # Redirect to the organization dashboard page
+        show_dashboard(st.session_state.organization)
+        return
+
+    elif 'user' in st.session_state and st.session_state.user:
         st.info("このアプリは、あなたの英語の志望動機書を評価し、フィードバックを提供します。")
         user = st.session_state.user
         uni_name = user['university']
