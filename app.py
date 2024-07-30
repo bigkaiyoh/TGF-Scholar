@@ -6,6 +6,7 @@ from auth import register_user, login_user, logout_user, login_organization
 from extra_pages.organization_dashboard import show_org_dashboard
 from firebase_setup import db
 from streamlit_option_menu import option_menu
+from datetime import datetime
 
 
 # Initialize assistant
@@ -86,6 +87,18 @@ def get_org_name(org_code):
         st.error(f"Error retrieving organization name: {e}")
         return 'Error occurred'
 
+def save_submission(user_id, txt, uni_name, program_name):
+    try:
+        db.collection('submissions').add({
+            'user_id': user_id,
+            'text': txt,
+            'submit_time': datetime.now(),
+            'university': uni_name,
+            'program': program_name
+        })
+    except Exception as e:
+        # Log the error or handle it in another way
+        print(f"Error saving submission: {e}")
 
 def main():
     st.markdown("<h1 class='main-title'>🎓 英語志望動機書対策ニッケ</h1>", unsafe_allow_html=True)
@@ -163,6 +176,9 @@ def main():
                     {feedback}
                 </div>
             """, unsafe_allow_html=True)
+
+            # Save submission using the dedicated function
+            save_submission(user['id'], txt, uni_name, program_name)
 
 
 
