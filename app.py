@@ -3,7 +3,7 @@ from modules import run_assistant, convert_image_to_text, get_secret
 from vocabvan import vocabvan_interface
 import json
 from auth import register_user, login_user, logout_user, login_organization
-from extra_pages.organization_dashboard import show_dashboard
+from extra_pages.organization_dashboard import show_org_dashboard
 from firebase_setup import db
 from streamlit_option_menu import option_menu
 
@@ -20,7 +20,7 @@ if 'transcription_done' not in st.session_state:
 if 'user' not in st.session_state:
     st.session_state.user = None
 if 'organization' not in st.session_state:
-    st.session_state.user = None
+    st.session_state.organization = None
 
 st.set_page_config(
     page_title="英語志望動機書対策ニッケ",
@@ -90,8 +90,84 @@ def get_org_name(org_code):
 def main():
     st.markdown("<h1 class='main-title'>🎓 英語志望動機書対策ニッケ</h1>", unsafe_allow_html=True)
     
-    # Authentication
-    if 'user' not in st.session_state or st.session_state.user is None:
+    # Organization Dashboard
+    if 'organization' in st.session_state and st.session_state.organization:
+        # Redirect to the organization dashboard page
+        show_org_dashboard(st.session_state.organization)
+
+    # User Dashboard
+    elif 'user' in st.session_state and st.session_state.user:
+        st.info("このアプリは、あなたの英語の志望動機書を評価し、フィードバックを提供します。")
+        user = st.session_state.user
+        uni_name = user['university']
+        program_name = user['program']
+
+        # Fetch organization name using org_code
+        org_name = get_org_name(user['org_code'])
+
+        with st.sidebar:
+            st.write(f"おかえりなさい  {user['id']} さん!")
+            st.write(f"志望校: {uni_name}")
+            st.write(f"志望学部: {program_name}")
+            st.write(f"所属: {org_name}")
+
+            if st.button("Logout"):
+                message = logout_user()
+                st.success(message)
+                st.rerun()
+
+        with st.expander("📌使い方", expanded=True):
+            st.markdown("""
+            1. 志望動機書を入力欄に貼り付けるか直接入力してください。  
+            (ファイルをアップロードで手書き文章やPDFの添削も行えます)  
+            2. 「採点する」ボタンをクリックして、AIによる評価を受けてください。
+            """)
+
+        # Chatbot Button and Popover
+        with st.popover("🧠 AIに質問"):
+            vocabvan_interface()
+
+        txt = get_input()
+        information = f"University: {uni_name}\nProgram: {program_name}\n\nWriting: {txt}"
+        
+        # 提出ボタン
+        submit_button = st.button("採点する🚀", type="primary")
+
+        # 評価表示画面
+        if submit_button:
+            # Reset transcription_done to False
+            st.session_state.transcription_done = False  
+
+            with st.expander("入力内容", expanded=False):
+                st.write(f"**志望校名**: {uni_name}")
+                st.write(f"**学部名**: {program_name}")
+                st.write("**志望動機書**:")
+                
+                # Use markdown to display the text in a styled box
+                box_content = txt.replace('\n', '<br>')
+                st.markdown(f"""
+                    <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #f9f9f9;">
+                        {box_content}
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                st.write(f'文字数: {len(txt.split())} 文字')
+            
+            st.subheader("AIからのフィードバック")
+            feedback = run_assistant(assistant_id=assistant, txt=information, return_content=True, display_chat=False)
+            st.success("評価が完了しました！")
+
+            # Display feedback in a styled box with background color
+            st.markdown(f"""
+                <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #e8f4f8;">
+                    {feedback}
+                </div>
+            """, unsafe_allow_html=True)
+
+
+
+    # --------------- Handling Authentication Below -----------------
+    else:
         # Center the content
         _, col, _ = st.columns([1, 2, 1])
 
@@ -170,80 +246,6 @@ def main():
                         st.warning("Please enter both organization code and password.")
 
             st.markdown("</div>", unsafe_allow_html=True)
-
-    elif 'organization' in st.session_state and st.session_state.organization:
-        # Redirect to the organization dashboard page
-        show_dashboard(st.session_state.organization)
-        return
-
-    elif 'user' in st.session_state and st.session_state.user:
-        st.info("このアプリは、あなたの英語の志望動機書を評価し、フィードバックを提供します。")
-        user = st.session_state.user
-        uni_name = user['university']
-        program_name = user['program']
-
-        # Fetch organization name using org_code
-        org_name = get_org_name(user['org_code'])
-
-        with st.sidebar:
-            st.write(f"おかえりなさい  {user['id']} さん!")
-            st.write(f"志望校: {uni_name}")
-            st.write(f"志望学部: {program_name}")
-            st.write(f"所属: {org_name}")
-
-            if st.button("Logout"):
-                message = logout_user()
-                st.success(message)
-                st.rerun()
-
-        with st.expander("📌使い方", expanded=True):
-            st.markdown("""
-            1. 志望動機書を入力欄に貼り付けるか直接入力してください。  
-            (ファイルをアップロードで手書き文章やPDFの添削も行えます)  
-            2. 「採点する」ボタンをクリックして、AIによる評価を受けてください。
-            """)
-
-        # Chatbot Button and Popover
-        with st.popover("🧠 AIに質問"):
-            vocabvan_interface()
-
-        txt = get_input()
-        information = f"University: {uni_name}\nProgram: {program_name}\n\nWriting: {txt}"
-        
-        # 提出ボタン
-        submit_button = st.button("採点する🚀", type="primary")
-
-        # 評価表示画面
-        if submit_button:
-            # Reset transcription_done to False
-            st.session_state.transcription_done = False  
-
-            with st.expander("入力内容", expanded=False):
-                st.write(f"**志望校名**: {uni_name}")
-                st.write(f"**学部名**: {program_name}")
-                st.write("**志望動機書**:")
-                
-                # Use markdown to display the text in a styled box
-                box_content = txt.replace('\n', '<br>')
-                st.markdown(f"""
-                    <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #f9f9f9;">
-                        {box_content}
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                st.write(f'文字数: {len(txt.split())} 文字')
-            
-            st.subheader("AIからのフィードバック")
-            feedback = run_assistant(assistant_id=assistant, txt=information, return_content=True, display_chat=False)
-            st.success("評価が完了しました！")
-
-            # Display feedback in a styled box with background color
-            st.markdown(f"""
-                <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #e8f4f8;">
-                    {feedback}
-                </div>
-            """, unsafe_allow_html=True)
-
 
 
 if __name__ == "__main__":

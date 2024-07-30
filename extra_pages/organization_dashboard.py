@@ -1,7 +1,7 @@
 import streamlit as st
 from firebase_setup import db
 
-def show_dashboard(organization):
+def show_org_dashboard(organization):
     st.title(f"Welcome, {organization['org_name']}!")
     st.write(f"Organization Code: {organization['org_code']}")
 
