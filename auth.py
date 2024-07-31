@@ -7,15 +7,17 @@ import pytz
 
 def register_user(user_id, email, password, university, program, org_code):
     try:
+        # Check if user ID already exists
         user_ref = db.collection('users').document(user_id).get()
         if user_ref.exists:
             return None, "User with this ID already exists"
 
         hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
-        # Use UTC timezone-aware datetime
+        # Use UTC timezone-aware datetime for registration timestamp
         register_at = datetime.now(pytz.utc)
         
+        # Create a new user document in Firestore
         db.collection('users').document(user_id).set({
             'email': email,
             'password': hashed_password,
@@ -26,19 +28,11 @@ def register_user(user_id, email, password, university, program, org_code):
             'status': 'Active'
         })
 
-        user_data = {
-            "email": email,
-            "id": user_id,
-            "university": university,
-            "program": program,
-            "org_code": org_code,
-            "status": 'Active',
-            "registerAt": register_at
-        }
-        return user_data, "Registration successful"
+        
+        return True, "Registration successful"
     except Exception as e:
         print(f"Registration error: {str(e)}")
-        return None, f"Registration failed: {str(e)}"
+        return False, f"Registration failed: {str(e)}"
 
 def login_user(user_id, password):
     try:

@@ -218,10 +218,12 @@ def main():
 
                     if submit_button:
                         if user_id and email and password and university and program and org_code:
-                            user_data, message = register_user(user_id, email, password, university, program, org_code)
-                            if user_data:
+                            registration_success, message = register_user(user_id, email, password, university, program, org_code)
+                            if registration_success:
                                 st.success(message)
-                                st.session_state.user = user_data
+                                st.baloons()
+                                # st.session_state.user = user_data
+                                choice = "Login"
                                 st.rerun()
                             else:
                                 st.error(message)
