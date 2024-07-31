@@ -223,7 +223,6 @@ def main():
                                 st.success(message)
                                 st.balloons()
                                 # st.session_state.user = user_data
-                                choice = "Login"
                                 st.rerun()
                             else:
                                 st.error(message)
