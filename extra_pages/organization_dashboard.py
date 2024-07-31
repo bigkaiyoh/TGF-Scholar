@@ -5,8 +5,6 @@ from firebase_setup import db
 import plotly.express as px
 
 def show_org_dashboard(organization):
-    st.set_page_config(page_title=f"{organization['org_name']} Dashboard", layout="wide")
-
     st.markdown("""
     <style>
     .big-font {
