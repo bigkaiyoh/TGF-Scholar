@@ -96,9 +96,10 @@ def save_submission(user_id, txt, uni_name, program_name):
             'university': uni_name,
             'program': program_name
         })
+        return True
     except Exception as e:
-        # Log the error or handle it in another way
         print(f"Error saving submission: {e}")
+        return False
 
 def main():
     st.markdown("<h1 class='main-title'>🎓 英語志望動機書対策ニッケ</h1>", unsafe_allow_html=True)
@@ -110,19 +111,22 @@ def main():
 
     # User Dashboard
     elif 'user' in st.session_state and st.session_state.user:
-        st.info("このアプリは、あなたの英語の志望動機書を評価し、フィードバックを提供します。")
         user = st.session_state.user
         uni_name = user['university']
         program_name = user['program']
-
-        # Fetch organization name using org_code
         org_name = get_org_name(user['org_code'])
 
+
         with st.sidebar:
-            st.write(f"おかえりなさい  {user['id']} さん!")
-            st.write(f"志望校: {uni_name}")
-            st.write(f"志望学部: {program_name}")
-            st.write(f"所属: {org_name}")
+            st.write(f"Welcome back, {user['id']}!")
+            st.write(f"University: {uni_name}")
+            st.write(f"Program: {program_name}")
+            st.write(f"Organization: {org_name}")
+        
+            if user['status'] == 'Active':
+                st.write(f"Days left: {user['days_left']}")
+            else:
+                st.write("Your account is inactive. Please contact the organization.")
 
             if st.button("Logout"):
                 message = logout_user()
@@ -148,38 +152,40 @@ def main():
 
         # 評価表示画面
         if submit_button:
-            # Reset transcription_done to False
-            st.session_state.transcription_done = False  
+            if user['status'] == 'Active':
+                # Reset transcription_done to False
+                st.session_state.transcription_done = False  
 
-            with st.expander("入力内容", expanded=False):
-                st.write(f"**志望校名**: {uni_name}")
-                st.write(f"**学部名**: {program_name}")
-                st.write("**志望動機書**:")
+                with st.expander("入力内容", expanded=False):
+                    st.write(f"**志望校名**: {uni_name}")
+                    st.write(f"**学部名**: {program_name}")
+                    st.write("**志望動機書**:")
+                    
+                    # Use markdown to display the text in a styled box
+                    box_content = txt.replace('\n', '<br>')
+                    st.markdown(f"""
+                        <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #f9f9f9;">
+                            {box_content}
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.write(f'文字数: {len(txt.split())} 文字')
                 
-                # Use markdown to display the text in a styled box
-                box_content = txt.replace('\n', '<br>')
+                st.subheader("AIからのフィードバック")
+                feedback = run_assistant(assistant_id=assistant, txt=information, return_content=True, display_chat=False)
+                st.success("評価が完了しました！")
+
+                # Display feedback in a styled box with background color
                 st.markdown(f"""
-                    <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #f9f9f9;">
-                        {box_content}
+                    <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #e8f4f8;">
+                        {feedback}
                     </div>
                 """, unsafe_allow_html=True)
-                
-                st.write(f'文字数: {len(txt.split())} 文字')
-            
-            st.subheader("AIからのフィードバック")
-            feedback = run_assistant(assistant_id=assistant, txt=information, return_content=True, display_chat=False)
-            st.success("評価が完了しました！")
 
-            # Display feedback in a styled box with background color
-            st.markdown(f"""
-                <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #e8f4f8;">
-                    {feedback}
-                </div>
-            """, unsafe_allow_html=True)
-
-            # Save submission using the dedicated function
-            save_submission(user['id'], txt, uni_name, program_name)
-
+                # Save submission using the dedicated function
+                save_submission(user['id'], txt, uni_name, program_name)
+            else:
+                st.error("Your account is inactive. You cannot submit evaluations.")
 
 
     # --------------- Handling Authentication Below -----------------
