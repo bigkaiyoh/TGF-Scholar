@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 from firebase_setup import db
-import plotly.express as px
+import pytz
+from auth import logout_user
 
 def show_org_dashboard(organization):
     st.markdown("""
@@ -28,7 +29,7 @@ def show_org_dashboard(organization):
     users = db.collection('users').where('org_code', '==', organization['org_code']).where('status', '==', 'Active').stream()
 
     user_data = []
-    current_date = datetime.now()
+    current_date = datetime.now(pytz.utc)
     registrations_this_month = 0
     active_users = 0
 
@@ -36,15 +37,19 @@ def show_org_dashboard(organization):
         user_dict = user.to_dict()
         user_id = user.id
         register_at = user_dict.get('registerAt')
-        register_at_datetime = register_at if isinstance(register_at, datetime) else register_at.to_pydatetime()
-
-        if register_at and register_at_datetime.month == current_date.month and register_at_datetime.year == current_date.year:
+        if isinstance(register_at, datetime):
+            register_at = register_at.replace(tzinfo=pytz.utc)
+        
+        if register_at and register_at.month == current_date.month and register_at.year == current_date.year:
             registrations_this_month += 1
 
         active_users += 1
+        
+        expiration_date = register_at + timedelta(days=30) if register_at else None
+        
         user_data.append({
             'User ID': user_id,
-            'Registered At': register_at_datetime.strftime('%Y-%m-%d') if register_at else 'Unknown'
+            'Expiration Date': expiration_date.strftime('%Y-%m-%d') if expiration_date else 'Unknown'
         })
 
     col1, col2 = st.columns(2)
@@ -63,20 +68,22 @@ def show_org_dashboard(organization):
     st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
 
     if st.button("Logout", key="logout", help="Click to log out"):
+        logout_message = logout_user()
+        st.success(logout_message)
         del st.session_state.organization
         st.rerun()
 
 def update_user_statuses(org_code):
     users = db.collection('users').where('org_code', '==', org_code).stream()
-    inactive_threshold = datetime.now() - timedelta(days=30)  # Consider users inactive after 30 days
+    now = datetime.now(pytz.utc)
 
     for user in users:
         user_ref = db.collection('users').document(user.id)
         user_data = user.to_dict()
         register_at = user_data.get('registerAt')
         if register_at:
-            register_at_datetime = register_at if isinstance(register_at, datetime) else register_at.to_pydatetime()
-            if register_at_datetime < inactive_threshold:
-                user_ref.update({'status': 'Inactive'})
-            else:
-                user_ref.update({'status': 'Active'})
+            if isinstance(register_at, datetime):
+                register_at = register_at.replace(tzinfo=pytz.utc)
+            expiration_date = register_at + timedelta(days=30)
+            status = 'Active' if now < expiration_date else 'Inactive'
+            user_ref.update({'status': status})
