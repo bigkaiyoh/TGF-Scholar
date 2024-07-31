@@ -221,7 +221,7 @@ def main():
                             registration_success, message = register_user(user_id, email, password, university, program, org_code)
                             if registration_success:
                                 st.success(message)
-                                st.baloons()
+                                st.balloons()
                                 # st.session_state.user = user_data
                                 choice = "Login"
                                 st.rerun()
