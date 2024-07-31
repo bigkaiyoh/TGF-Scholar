@@ -28,11 +28,23 @@ def register_user(user_id, email, password, university, program, org_code):
             'status': 'Active'
         })
 
-        
-        return True, "Registration successful"
+        # Calculate days left
+        days_left = 30
+
+        user_data = {
+            "email": email,
+            "id": user_id,
+            "university": university,
+            "program": program,
+            "org_code": org_code,
+            "status": 'Active',
+            "registerAt": register_at,
+            "days_left": days_left
+        }
+        return user_data, "Registration successful"
     except Exception as e:
         print(f"Registration error: {str(e)}")
-        return False, f"Registration failed: {str(e)}"
+        return None, f"Registration failed: {str(e)}"
 
 def login_user(user_id, password):
     try:
