@@ -4,7 +4,7 @@ from modules.modules import run_assistant, convert_image_to_text, get_secret
 from modules.menu import menu
 from vocabvan import vocabvan_interface
 import json
-from auth import register_user, login_user, logout_user, login_organization
+from auth import register_user, login_user, login_organization
 from extra_pages.organization_dashboard import show_org_dashboard
 from firebase_setup import db
 from streamlit_option_menu import option_menu

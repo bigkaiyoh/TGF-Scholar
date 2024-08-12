@@ -35,20 +35,20 @@ def authenticated_menu():
         st.write(f"Program: {program_name}")
         st.write(f"Organization: {org_name}")  
 
-        st.page_link("extra_pages/Settings.py", label="Settings", icon="⚙️")
+        st.page_link("pages/Settings.py", label="Settings", icon="⚙️")
         if st.button("Logout"):
             logout_user()
             st.rerun()
 
 
-# def unauthenticated_menu():
+def unauthenticated_menu():
     # Show a navigation menu for unauthenticated users
-    # with st.sidebar:
-    #     if st.button("Login"):
-    #         st.switch_page("Home.py")
-    #     st.page_link("pages/VocabReview.py", label="Vocabulary Review", icon = "📚")
-    #     st.page_link("pages/Customer_Portal.py", label="Customer Portal", icon = "👤")
-    #     st.page_link("pages/Admin_Panel.py", label="Admin Panel", icon = "🏫")
+    with st.sidebar:
+        st.image("https://nuginy.com/wp-content/uploads/2024/08/TGF-Scholar_HighRes.png",
+                 width=190
+                 #  use_column_width=True  # Ensures the image uses the full width of the sidebar column
+                )    
+        st.write("Please login")
 
 
 def menu():
@@ -59,14 +59,10 @@ def menu():
 
     if st.session_state.user:
         authenticated_menu()
-        # with cl3:
-        #     with st.popover(translate("無料で始める", "Try For Free!")):
-        #         st.link_button("1 Week", "https://buy.stripe.com/14kbJN4Fv4tRaKQ149")
-        #         st.link_button("1 Month", "https://buy.stripe.com/3cseVZ5Jz0dB06c5kn")
-        #         st.link_button("3 Months", "https://buy.stripe.com/aEU29d2xn8K7f16fZ2")
+
         
-    # else:
-    #     authenticated_menu()
+    else:
+        unauthenticated_menu()
     
     # Custom CSS with updated hover color
     st.markdown("""
