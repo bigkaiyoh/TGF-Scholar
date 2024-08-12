@@ -39,6 +39,7 @@ st.markdown("""
         font-size: 50px;
         text-align: center;
         color: #0097b2;
+        margin-bottom: 0px; /* Reduce the gap below the title */
     }
     .catchphrase {
         font-size: 20px;
