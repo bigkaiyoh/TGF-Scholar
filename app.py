@@ -35,24 +35,16 @@ st.set_page_config(
 # Custom CSS for improved styling
 st.markdown("""
 <style>
-    .title-container {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-    .favicon-image {
-        height: 60px;
-        margin-right: 15px;
-    }
     .main-title {
         font-size: 50px;
+        text-align: center;
         color: #0097b2;
-        margin: 0;
     }
     .catch-phrase {
         font-size: 20px;
+        text-align: center;
         color: #555555;
-        margin-top: 5px;
+        margin-top: -10px;
     }
     .stButton>button {
         width: 100%;
@@ -119,16 +111,17 @@ def save_submission(user_id, txt, uni_name, program_name):
         return False
 
 def main():
-    # Display Title with Favicon and Catchphrase
-    st.markdown("""
-    <div class="title-container">
-        <img src="src/TGF-Scholar-favicon.png" class="favicon-image">
-        <div>
-            <h1 class="main-title">TGF-Scholar</h1>
-            <div class="catch-phrase">Document Your Journey, Define Your Path</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Display Title with Favicon and Catchphrase using Streamlit's layout
+    col1, col2 = st.columns([1, 6])  # Adjust column widths as necessary
+
+    with col1:
+        st.image(fc, width=50)  # Adjust width to match the title size
+
+    with col2:
+        st.markdown("""
+        <h1 style='color: #0097b2; font-size: 50px; margin: 0;'>TGF-Scholar</h1>
+        <div style='font-size: 20px; color: #555555; margin-top: 5px;'>Document Your Journey, Define Your Path</div>
+        """, unsafe_allow_html=True)
     
     # Organization Dashboard
     if 'organization' in st.session_state and st.session_state.organization:
