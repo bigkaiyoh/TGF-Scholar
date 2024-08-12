@@ -111,7 +111,7 @@ def save_submission(user_id, txt, uni_name, program_name):
         return False
 
 def main():
-    # Display Title with Favicon and Catchphrase using Streamlit's layout!
+    # Display Title with Favicon and Catchphrase using Streamlit's layout
     col1, col2 = st.columns([1, 6])  # Adjust column widths as necessary
 
     with col1:
