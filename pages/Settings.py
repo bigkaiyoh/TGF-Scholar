@@ -1,6 +1,7 @@
 import streamlit as st
 import pytz
 from firebase_setup import db
+from modules.menu import menu
 
 if 'user' not in st.session_state:
     st.session_state.user = None
@@ -14,6 +15,7 @@ def update_user_settings(user_id, timezone):
     st.success("設定が正常に更新されました！")
 
 def settings_page():
+    menu()
     st.title("ユーザー設定")
     st.write("ここでプロフィールと設定をカスタマイズできます。")
 
