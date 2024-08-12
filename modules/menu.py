@@ -35,6 +35,13 @@ def authenticated_menu():
         st.write(f"Program: {program_name}")
         st.write(f"Organization: {org_name}")  
 
+        if user['status'] == 'Active':
+            st.write(f"Days left: {user['days_left']}")
+        else:
+            st.write("Your account is inactive. Please contact the organization.")
+
+        st.divider()
+
         st.page_link("app.py", label="Home", icon="🏠")
         st.page_link("pages/Settings.py", label="Settings", icon="⚙️")
         if st.button("Logout"):
