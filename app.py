@@ -1,4 +1,5 @@
 import streamlit as st
+from PIL import Image
 from modules import run_assistant, convert_image_to_text, get_secret
 from vocabvan import vocabvan_interface
 import json
@@ -23,19 +24,37 @@ if 'user' not in st.session_state:
 if 'organization' not in st.session_state:
     st.session_state.organization = None
 
+#Page Configuration
+fc = Image.open("src/TGF-Scholar-favicon.png")
 st.set_page_config(
-    page_title="英語志望動機書対策ニッケ",
-    page_icon="🎓",
+    page_title="TGF-Scholar",
+    page_icon=fc,
     layout="wide"
 )
 
 # Custom CSS for improved styling
 st.markdown("""
 <style>
+    .title-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+    .title-container img {
+        height: 50px; /* Adjust this to match the title size */
+        margin-right: 15px;
+    }
     .main-title {
         font-size: 50px;
-        text-align: center;
         color: #0097b2;
+        margin: 0;
+    }
+    .catch-phrase {
+        font-size: 20px;
+        text-align: center;
+        color: #555555;
+        margin-top: -10px; /* Adjust to position closer to the title */
     }
     .stButton>button {
         width: 100%;
@@ -102,7 +121,16 @@ def save_submission(user_id, txt, uni_name, program_name):
         return False
 
 def main():
-    st.markdown("<h1 class='main-title'>🎓 英語志望動機書対策ニッケ</h1>", unsafe_allow_html=True)
+    # Display Title with Favicon and Catchphrase
+    st.markdown("""
+    <div class="title-container">
+        <img src="src/TGF-Scholar-favicon.png" alt="Favicon">
+        <h1 class='main-title'>🎓 TGF-Scholar</h1>
+    </div>
+    <div class='catch-phrase'>
+        "Your gateway to academic excellence"
+    </div>
+    """, unsafe_allow_html=True)
     
     # Organization Dashboard
     if 'organization' in st.session_state and st.session_state.organization:
