@@ -101,7 +101,7 @@ def save_submission(user_id, txt, uni_name, program_name):
         user_ref = db.collection('users').document(user_id)
         user_ref.collection('submissions').add({
             'text': txt,
-            'submit_time': datetime.utcnow(),
+            'submit_time': datetime.now(),
             'university': uni_name,
             'program': program_name
         })
