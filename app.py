@@ -40,6 +40,12 @@ st.markdown("""
         text-align: center;
         color: #0097b2;
     }
+    .catchphrase {
+        font-size: 20px;
+        text-align: center;
+        color: #0097b2;
+        margin-top: 0;
+    }
     .stButton>button {
         width: 100%;
     }
@@ -106,7 +112,10 @@ def save_submission(user_id, txt, uni_name, program_name):
 
 def main():
     # Display Title with Favicon and Catchphrase using Streamlit's layout
-    st.markdown("<h1 class='main-title'>🎓 英語志望動機書対策ニッケ</h1>", unsafe_allow_html=True)
+    st.markdown("""
+        <h1 class='main-title'>TGF-Scholar</h1>
+        <p class='catchphrase'>Document Your Journey, Define Your Path</p>
+        """, unsafe_allow_html=True)
     
     # Organization Dashboard
     if 'organization' in st.session_state and st.session_state.organization:
@@ -122,6 +131,10 @@ def main():
 
 
         with st.sidebar:
+            st.image("https://nuginy.com/wp-content/uploads/2024/08/TGF-Scholar_HighRes.png",
+                     caption="TGF-Scholar Logo",  # Optional caption
+                     use_column_width=True  # Ensures the image uses the full width of the sidebar column
+                    )       
             st.write(f"Welcome back, {user['id']}!")
             st.write(f"University: {uni_name}")
             st.write(f"Program: {program_name}")
