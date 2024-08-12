@@ -35,8 +35,7 @@ def authenticated_menu():
         st.write(f"Program: {program_name}")
         st.write(f"Organization: {org_name}")  
 
-        if st.button("Home"):
-            st.switch_page("app.py")
+        st.page_link("app.py", label="Home", icon="🏠")
         st.page_link("pages/Settings.py", label="Settings", icon="⚙️")
         if st.button("Logout"):
             logout_user()

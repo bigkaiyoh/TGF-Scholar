@@ -17,7 +17,7 @@ def settings_page():
     st.title("ユーザー設定")
     st.write("ここでプロフィールと設定をカスタマイズできます。")
 
-    if st.session_stateuser is None:
+    if st.session_state.user is None:
         st.warning("設定にアクセスするにはログインしてください。")
         return
 
