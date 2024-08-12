@@ -8,6 +8,7 @@ from extra_pages.organization_dashboard import show_org_dashboard
 from firebase_setup import db
 from streamlit_option_menu import option_menu
 from datetime import datetime
+import pytz
 
 
 # Initialize assistant
@@ -232,11 +233,15 @@ def main():
                     university = st.text_input("University you're applying to", placeholder="Enter the university you're applying to")
                     program = st.text_input("Program you're applying to", placeholder="Enter the program you're applying to")
                     org_code = st.text_input("Organization Code", placeholder="Enter your organization code")
+                    # Timezone selection
+                    timezones = pytz.all_timezones
+                    selected_timezone = st.selectbox("Select Your Timezone", timezones)
+
                     submit_button = st.form_submit_button("Register", use_container_width=True)
 
                     if submit_button:
-                        if user_id and email and password and university and program and org_code:
-                            user_data, message = register_user(user_id, email, password, university, program, org_code)
+                        if user_id and email and password and university and program and org_code and selected_timezone:
+                            user_data, message = register_user(user_id, email, password, university, program, org_code, selected_timezone)
                             if user_data:
                                 st.success(message)
                                 st.session_state.user = user_data

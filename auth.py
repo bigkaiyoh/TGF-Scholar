@@ -2,10 +2,10 @@ import streamlit as st
 from firebase_admin import firestore
 import bcrypt
 from firebase_setup import db
-from datetime import datetime, timedelta
+from datetime import datetime, timezone as dt_timezone
 import pytz
 
-def register_user(user_id, email, password, university, program, org_code):
+def register_user(user_id, email, password, university, program, org_code, user_timezone):
     try:
         # Check if user ID already exists
         user_ref = db.collection('users').document(user_id).get()
@@ -25,6 +25,7 @@ def register_user(user_id, email, password, university, program, org_code):
             'program': program,
             'org_code': org_code,
             'registerAt': register_at,
+            'timezone': user_timezone,
             'status': 'Active'
         })
 
@@ -39,6 +40,7 @@ def register_user(user_id, email, password, university, program, org_code):
             "org_code": org_code,
             "status": 'Active',
             "registerAt": register_at,
+            'timezone': user_timezone,
             "days_left": days_left
         }
         return user_data, "Registration successful"
@@ -72,6 +74,7 @@ def login_user(user_id, password):
                 "university": user_data['university'],
                 "program": user_data['program'],
                 "org_code": user_data['org_code'],
+                'timezone': user_data['timezone'],
                 "status": status,
                 "days_left": days_left
             }, "Login successful"
