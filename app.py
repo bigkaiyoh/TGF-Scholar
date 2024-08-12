@@ -38,11 +38,10 @@ st.markdown("""
     .title-container {
         display: flex;
         align-items: center;
-        justify-content: center;
-        margin-bottom: 10px;
+        margin-bottom: 1rem;
     }
-    .title-container img {
-        height: 50px; /* Adjust this to match the title size */
+    .favicon-image {
+        height: 60px;
         margin-right: 15px;
     }
     .main-title {
@@ -52,9 +51,8 @@ st.markdown("""
     }
     .catch-phrase {
         font-size: 20px;
-        text-align: center;
         color: #555555;
-        margin-top: -10px; /* Adjust to position closer to the title */
+        margin-top: 5px;
     }
     .stButton>button {
         width: 100%;
@@ -124,11 +122,11 @@ def main():
     # Display Title with Favicon and Catchphrase
     st.markdown("""
     <div class="title-container">
-        <img src="src/TGF-Scholar-favicon.png" alt="Favicon">
-        <h1 class='main-title'>🎓 TGF-Scholar</h1>
-    </div>
-    <div class='catch-phrase'>
-        "Your gateway to academic excellence"
+        <img src="src/TGF-Scholar-favicon.png" class="favicon-image">
+        <div>
+            <h1 class="main-title">TGF-Scholar</h1>
+            <div class="catch-phrase">Document Your Journey, Define Your Path</div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
     
