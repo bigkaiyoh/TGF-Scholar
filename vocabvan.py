@@ -1,5 +1,5 @@
 import streamlit as st
-from modules import run_assistant, get_secret
+from modules.modules import run_assistant, get_secret
 
 def vocabvan_interface():
     secrets = get_secret()

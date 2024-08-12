@@ -1,6 +1,7 @@
 import streamlit as st
 from PIL import Image
-from modules import run_assistant, convert_image_to_text, get_secret
+from modules.modules import run_assistant, convert_image_to_text, get_secret
+from modules.menu import menu
 from vocabvan import vocabvan_interface
 import json
 from auth import register_user, login_user, logout_user, login_organization
@@ -86,17 +87,7 @@ def get_input():
 
     return txt
 
-def get_org_name(org_code):
-    try:
-        org_ref = db.collection('organizations').document(org_code).get()
-        if org_ref.exists:
-            org_data = org_ref.to_dict()
-            return org_data.get('org_name', 'Organization not found')
-        else:
-            return 'Organization not found'
-    except Exception as e:
-        st.error(f"Error retrieving organization name: {e}")
-        return 'Error occurred'
+
 
 def save_submission(user_id, txt, uni_name, program_name):
     try:
@@ -129,28 +120,8 @@ def main():
         user = st.session_state.user
         uni_name = user['university']
         program_name = user['program']
-        org_name = get_org_name(user['org_code'])
 
-
-        with st.sidebar:
-            st.image("https://nuginy.com/wp-content/uploads/2024/08/TGF-Scholar_HighRes.png",
-                     width=190
-                    #  use_column_width=True  # Ensures the image uses the full width of the sidebar column
-                    )       
-            st.write(f"Welcome back, {user['id']}!")
-            st.write(f"University: {uni_name}")
-            st.write(f"Program: {program_name}")
-            st.write(f"Organization: {org_name}")
-        
-            if user['status'] == 'Active':
-                st.write(f"Days left: {user['days_left']}")
-            else:
-                st.write("Your account is inactive. Please contact the organization.")
-
-            if st.button("Logout"):
-                message = logout_user()
-                st.success(message)
-                st.rerun()
+        menu()
 
         with st.expander("📌使い方", expanded=True):
             st.markdown("""
