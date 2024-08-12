@@ -107,7 +107,7 @@ def main():
     # Display Title with Favicon and Catchphrase using Streamlit's layout
     st.markdown("""
         <h1 class='main-title'>TGF-Scholar</h1>
-        <p class='catchphrase'>Document Your Journey, Define Your Path</p>
+        <p class='catchphrase'>~Document Your Journey, Define Your Path~</p>
         """, unsafe_allow_html=True)
     
     # Organization Dashboard
