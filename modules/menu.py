@@ -35,6 +35,8 @@ def authenticated_menu():
         st.write(f"Program: {program_name}")
         st.write(f"Organization: {org_name}")  
 
+        if st.button("Home"):
+            st.switch_page("app.py")
         st.page_link("pages/Settings.py", label="Settings", icon="⚙️")
         if st.button("Logout"):
             logout_user()
@@ -48,7 +50,7 @@ def unauthenticated_menu():
                  width=190
                  #  use_column_width=True  # Ensures the image uses the full width of the sidebar column
                 )    
-        st.write("Please login")
+        st.write("Please Log in")
 
 
 def menu():
