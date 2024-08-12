@@ -44,7 +44,7 @@ st.markdown("""
         font-size: 20px;
         text-align: center;
         color: #0097b2;
-        margin-top: 0;
+        margin-top: -10px; /* Reduce the gap above the catchphrase */
     }
     .stButton>button {
         width: 100%;
@@ -132,8 +132,8 @@ def main():
 
         with st.sidebar:
             st.image("https://nuginy.com/wp-content/uploads/2024/08/TGF-Scholar_HighRes.png",
-                     caption="TGF-Scholar Logo",  # Optional caption
-                     use_column_width=True  # Ensures the image uses the full width of the sidebar column
+                     width=190
+                    #  use_column_width=True  # Ensures the image uses the full width of the sidebar column
                     )       
             st.write(f"Welcome back, {user['id']}!")
             st.write(f"University: {uni_name}")
