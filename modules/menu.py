@@ -1,5 +1,6 @@
 import streamlit as st
 from auth import logout_user
+from firebase_setup import db
 
 
 if 'user' not in st.session_state:
@@ -34,7 +35,7 @@ def authenticated_menu():
         st.write(f"Program: {program_name}")
         st.write(f"Organization: {org_name}")  
 
-        st.page_link("pages/Settings.py", label="Settings", icon="⚙️")
+        st.page_link("extra_pages/Settings.py", label="Settings", icon="⚙️")
         if st.button("Logout"):
             logout_user()
             st.rerun()

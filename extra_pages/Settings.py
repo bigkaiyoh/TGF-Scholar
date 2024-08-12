@@ -47,8 +47,6 @@ def settings_page():
     st.write(f"**タイムゾーン:** {st.session_state.user.get('timezone', 'UTC')}")
 
 if __name__ == "__main__":
-    st.set_page_config(page_title="User Settings", page_icon="⚙️", layout="wide")
-
     # Custom CSS with updated hover color
     st.markdown("""
     <style>
