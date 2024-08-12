@@ -40,12 +40,6 @@ st.markdown("""
         text-align: center;
         color: #0097b2;
     }
-    .catch-phrase {
-        font-size: 20px;
-        text-align: center;
-        color: #555555;
-        margin-top: -10px;
-    }
     .stButton>button {
         width: 100%;
     }
@@ -112,16 +106,7 @@ def save_submission(user_id, txt, uni_name, program_name):
 
 def main():
     # Display Title with Favicon and Catchphrase using Streamlit's layout
-    col1, col2 = st.columns([1, 6])  # Adjust column widths as necessary
-
-    with col1:
-        st.image(fc, width=50)  # Adjust width to match the title size
-
-    with col2:
-        st.markdown("""
-        <h1 style='color: #0097b2; font-size: 50px; margin: 0;'>TGF-Scholar</h1>
-        <div style='font-size: 20px; color: #555555; margin-top: 5px;'>Document Your Journey, Define Your Path</div>
-        """, unsafe_allow_html=True)
+    st.markdown("<h1 class='main-title'>🎓 英語志望動機書対策ニッケ</h1>", unsafe_allow_html=True)
     
     # Organization Dashboard
     if 'organization' in st.session_state and st.session_state.organization:
