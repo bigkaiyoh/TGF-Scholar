@@ -12,29 +12,31 @@ if 'organization' not in st.session_state:
 
 
 # ------------------------- functions for full dashboard -----------------------
-def display_todays_submissions(org_code, timezone):
-    """Display today's total submissions based on the organization's timezone."""
+def todays_total_submissions(data, timezone):
+    """Display today's total submissions based on pre-fetched data, using user_id as the identifier."""
     user_timezone = pytz.timezone(timezone)
-    start_of_day = datetime.now(user_timezone).replace(hour=0, minute=0, second=0, microsecond=0)
-    start_of_day_utc = start_of_day.astimezone(pytz.utc)
-    
-    submissions_ref = db.collection_group('submissions').where('org_code', '==', org_code).where('submit_time', '>=', start_of_day_utc)
-    todays_submissions = 0
-    users_set = set()
+    today = datetime.now(user_timezone).date()
+    todays_data = data[data['date'] == today]
+    todays_total_submissions = len(todays_data)
+    todays_total_users = todays_data['user_id'].nunique()  # Use 'user_id' instead of 'user_email'
 
-    for submission in submissions_ref.stream():
-        submission_dict = submission.to_dict()
-        submission_time = submission_dict['submit_time'].astimezone(user_timezone).date()
+    st.metric(label="You received", value=todays_total_submissions, delta="tests today")
+    st.metric(label="from", value=todays_total_users, delta="students")
 
-        if submission_time == start_of_day.date():
-            todays_submissions += 1
-            users_set.add(submission_dict['user_id'])
-
-    todays_total_users = len(users_set)
-
-    st.metric(label="Today's Submissions", value=todays_submissions)
-    st.metric(label="Unique Users Today", value=todays_total_users)
-
+def fetch_submission_data(users_data):
+    """Fetch submission data for users."""
+    submissions = []
+    for user_id, user_info in users_data.items():
+        submission_ref = db.collection('users').document(user_id).collection('submissions').stream()
+        for submission in submission_ref:
+            sub_data = submission.to_dict()
+            sub_data.update({
+                'user_id': user_id,  # Add 'user_id' to the submission data
+                'timestamp': sub_data.get('timestamp').strftime("%Y-%m-%d %H:%M:%S"),
+                'date': sub_data.get('timestamp').date()  # Add 'date' to use in today's submissions calculation
+            })
+            submissions.append(sub_data)
+    return pd.DataFrame(submissions)
 
 def display_detailed_user_info(user_data):
     """Display detailed user information with a clickable submission history."""
@@ -171,11 +173,14 @@ def full_org_dashboard(organization):
     # Fetch user data and update statuses
     user_data, registrations_this_month, active_users = get_user_data(organization['org_code'])
 
+    # Fetch submission data for the organization
+    submissions_df = fetch_submission_data(user_data)  # Fetch all submission data
+
     # Display base metrics
     display_metrics(registrations_this_month, active_users)
     
     # Additional metrics: Today's total submissions
-    display_todays_submissions(organization['org_code'], organization['timezone'])  # Pass timezone here
+    todays_total_submissions(submissions_df, organization['timezone'])  # Pass pre-fetched data
     
     # Display detailed user table with submission history
     selected_user_id = display_detailed_user_info(user_data)
