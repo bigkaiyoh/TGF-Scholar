@@ -237,10 +237,10 @@ def full_org_dashboard(organization):
 
     # Display user table with search functionality
     st.subheader("Active Users")
-    search = st.text_input("Search users by ID or Email")
+    # search = st.text_input("Search users by ID or Email")
     df = pd.DataFrame(user_data)
-    if search:
-        df = df[df['User ID'].str.contains(search, case=False) | df['email'].str.contains(search, case=False)]
+    # if search:
+    #     df = df[df['User ID'].str.contains(search, case=False) | df['email'].str.contains(search, case=False)]
     st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
 
     st.divider()
