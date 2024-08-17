@@ -26,7 +26,8 @@ def todays_total_submissions(data, timezone):
 def fetch_submission_data(users_data):
     """Fetch submission data for users."""
     submissions = []
-    for user_id, user_info in users_data.items():
+    for user in users_data:
+        user_id = user['User ID']  # Extract user_id from the user data dictionary
         submission_ref = db.collection('users').document(user_id).collection('submissions').stream()
         for submission in submission_ref:
             sub_data = submission.to_dict()
@@ -37,6 +38,7 @@ def fetch_submission_data(users_data):
             })
             submissions.append(sub_data)
     return pd.DataFrame(submissions)
+
 
 def display_detailed_user_info(user_data):
     """Display detailed user information with a clickable submission history."""
