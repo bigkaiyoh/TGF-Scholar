@@ -60,7 +60,7 @@ def display_detailed_user_info(user_data):
 
 def display_submission_history(user_id):
     """Display submission history for a selected user."""
-    st.subheader(f"Submission History for User {user_id}")
+    st.subheader(f"Submission History for {user_id}")
     
     try:
         submissions_ref = db.collection('users').document(user_id).collection('submissions')
