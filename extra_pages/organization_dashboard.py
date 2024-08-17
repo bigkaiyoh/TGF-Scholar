@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from firebase_setup import db
 import pytz
 from auth import logout_org
+from firebase_admin import firestore
 
 if 'organization' not in st.session_state:
     st.session_state.organization = None
@@ -61,23 +62,26 @@ def display_submission_history(user_id):
     """Display submission history for a selected user."""
     st.subheader(f"Submission History for User {user_id}")
     
-    submissions_ref = db.collection('users').document(user_id).collection('submissions')
-    submissions = submissions_ref.order_by('submit_time', direction=firestore.Query.DESCENDING).stream()
-    
-    submission_data = []
-    for submission in submissions:
-        submission_dict = submission.to_dict()
-        submission_data.append({
-            "Submission Text": submission_dict.get('text', ''),
-            "Submission Date": submission_dict.get('submit_time').strftime('%Y-%m-%d %H:%M:%S') if submission_dict.get('submit_time') else 'Unknown',
-            "University": submission_dict.get('university', ''),
-            "Program": submission_dict.get('program', '')
-        })
-    
-    if submission_data:
-        st.dataframe(pd.DataFrame(submission_data))
-    else:
-        st.write("No submissions found for this user.")
+    try:
+        submissions_ref = db.collection('users').document(user_id).collection('submissions')
+        submissions = submissions_ref.order_by('submit_time', direction=firestore.Query.DESCENDING).stream()
+        
+        submission_data = []
+        for submission in submissions:
+            submission_dict = submission.to_dict()
+            submission_data.append({
+                "Submission Text": submission_dict.get('text', ''),
+                "Submission Date": submission_dict.get('submit_time').strftime('%Y-%m-%d %H:%M:%S') if submission_dict.get('submit_time') else 'Unknown',
+                "University": submission_dict.get('university', ''),
+                "Program": submission_dict.get('program', '')
+            })
+        
+        if submission_data:
+            st.dataframe(pd.DataFrame(submission_data))
+        else:
+            st.info("No submissions found for this user.")
+    except Exception as e:
+        st.error(f"Error fetching submission history: {str(e)}")
 
 
 def get_user_data(org_code):
@@ -115,13 +119,28 @@ def get_user_data(org_code):
         # Only add active users to the data list
         if status == 'Active':
             active_users += 1
+
+            # Calculate total submissions and today's submissions
+            submission_ref = db.collection('users').document(user_id).collection('submissions').stream()
+            total_submissions = 0
+            todays_submissions = 0
+            today = datetime.now(pytz.utc).date()  # Today's date in UTC
+
+            for submission in submission_ref:
+                sub_data = submission.to_dict()
+                submit_time = sub_data.get('submit_time')
+                if submit_time:
+                    submit_time = submit_time.replace(tzinfo=pytz.utc)
+                    total_submissions += 1
+                    if submit_time.date() == today:
+                        todays_submissions += 1
+
             user_data.append({
                 'User ID': user_id,
                 'Expiration Date': expiration_date.strftime('%Y-%m-%d') if expiration_date else 'Unknown',
                 'registerAt': register_at.strftime('%Y-%m-%d') if register_at else 'Unknown',
-                'status': status,
-                'submission_count': user_dict.get('submission_count', 0),
-                'engagement_score': user_dict.get('engagement_score', 0),  # Placeholder for engagement
+                'total_submission': total_submissions,
+                'todays_submission': todays_submissions,
             })
 
     # Commit all updates to Firestore at once
@@ -215,4 +234,4 @@ def full_org_dashboard(organization):
     if st.button("Logout", key="logout", help="Click to log out"):
         logout_message = logout_org()
         st.success(logout_message)
-        st.experimental_rerun()
+        st.rerun()
