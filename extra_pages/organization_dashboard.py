@@ -27,16 +27,19 @@ def fetch_submission_data(users_data):
     """Fetch submission data for users."""
     submissions = []
     for user in users_data:
-        user_id = user['User ID']  # Extract user_id from the user data dictionary
-        submission_ref = db.collection('users').document(user_id).collection('submissions').stream()
-        for submission in submission_ref:
-            sub_data = submission.to_dict()
-            sub_data.update({
-                'user_id': user_id,  # Add 'user_id' to the submission data
-                'timestamp': sub_data.get('timestamp').strftime("%Y-%m-%d %H:%M:%S"),
-                'date': sub_data.get('timestamp').date()  # Add 'date' to use in today's submissions calculation
-            })
-            submissions.append(sub_data)
+        user_id = user['User ID']
+        try:
+            submission_ref = db.collection('users').document(user_id).collection('submissions').stream()
+            for submission in submission_ref:
+                sub_data = submission.to_dict()
+                sub_data.update({
+                    'user_id': user_id,
+                    'timestamp': sub_data.get('submit_time'),
+                    'date': sub_data.get('submit_time').date() if sub_data.get('submit_time') else None
+                })
+                submissions.append(sub_data)
+        except Exception as e:
+            st.error(f"Error fetching submissions for user {user_id}: {str(e)}")
     return pd.DataFrame(submissions)
 
 
@@ -66,13 +69,13 @@ def display_submission_history(user_id):
         submission_dict = submission.to_dict()
         submission_data.append({
             "Submission Text": submission_dict.get('text', ''),
-            "Submission Date": submission_dict.get('submit_time').strftime('%Y-%m-%d %H:%M:%S'),
+            "Submission Date": submission_dict.get('submit_time').strftime('%Y-%m-%d %H:%M:%S') if submission_dict.get('submit_time') else 'Unknown',
             "University": submission_dict.get('university', ''),
             "Program": submission_dict.get('program', '')
         })
     
     if submission_data:
-        st.write(pd.DataFrame(submission_data))
+        st.dataframe(pd.DataFrame(submission_data))
     else:
         st.write("No submissions found for this user.")
 
@@ -143,10 +146,14 @@ def display_metrics(registrations_this_month, active_users):
 def display_active_users_table(user_data):
     st.subheader("Active Users")
     df = pd.DataFrame(user_data)
-    search = st.text_input("Search users by ID")
+    search = st.text_input("Search users by ID or Email")
     if search:
-        df = df[df['User ID'].str.contains(search, case=False)]
-    st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
+        df = df[df['User ID'].str.contains(search, case=False) | df['email'].str.contains(search, case=False)]
+    
+    if df.empty:
+        st.info("No users found matching your search criteria.")
+    else:
+        st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
 
 
 def show_org_dashboard(organization):
@@ -176,17 +183,31 @@ def full_org_dashboard(organization):
     user_data, registrations_this_month, active_users = get_user_data(organization['org_code'])
 
     # Fetch submission data for the organization
-    submissions_df = fetch_submission_data(user_data)  # Fetch all submission data
+    submissions_df = fetch_submission_data(user_data)
 
     # Display base metrics
-    display_metrics(registrations_this_month, active_users)
-    
-    # Additional metrics: Today's total submissions
-    todays_total_submissions(submissions_df, organization['timezone'])  # Pass pre-fetched data
-    
-    # Display detailed user table with submission history
-    selected_user_id = display_detailed_user_info(user_data)
-    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric(label="Registrations This Month", value=registrations_this_month)
+    with col2:
+        st.metric(label="Active Users", value=active_users)
+    with col3:
+        todays_submissions = len(submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()])
+        st.metric(label="Today's Submissions", value=todays_submissions)
+    with col4:
+        todays_users = submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()]['user_id'].nunique()
+        st.metric(label="Today's Active Students", value=todays_users)
+
+    # Display user table with search functionality
+    st.subheader("Active Users")
+    search = st.text_input("Search users by ID or Email")
+    df = pd.DataFrame(user_data)
+    if search:
+        df = df[df['User ID'].str.contains(search, case=False) | df['email'].str.contains(search, case=False)]
+    st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
+
+    # Display submission history for selected user
+    selected_user_id = st.selectbox("Select User ID to View Submission History", df['User ID'].tolist())
     if selected_user_id:
         display_submission_history(selected_user_id)
 
@@ -194,4 +215,4 @@ def full_org_dashboard(organization):
     if st.button("Logout", key="logout", help="Click to log out"):
         logout_message = logout_org()
         st.success(logout_message)
-        st.rerun()
+        st.experimental_rerun()
