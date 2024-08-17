@@ -82,53 +82,26 @@ def filters(filtered_data, apply_email_filter=True):
 
 
 
-def show_org_dashboard(organization):
-    """Display the organization dashboard, showing statistics and active users."""
-    
-    st.markdown("""
-    <style>
-    .big-font {
-        font-size:30px !important;
-        font-weight: bold;
-    }
-    .stMetric {
-        background-color: #f0f2f6;
-        padding: 20px;
-        border-radius: 10px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
+def display_org_header(organization):
     st.markdown(f"<h1 class='big-font'>Welcome, {organization['org_name']}!</h1>", unsafe_allow_html=True)
     st.markdown(f"**Organization Code:** {organization['org_code']}")
 
-    # Update and fetch users in the specific organization
-    users, registrations_this_month, active_users = get_user_data(organization['org_code'])
-
+def display_metrics(registrations_this_month, active_users):
     col1, col2 = st.columns(2)
     with col1:
         st.metric(label="Registrations This Month", value=registrations_this_month)
     with col2:
         st.metric(label="Active Users", value=active_users)
 
+def display_active_users_table(user_data):
     st.subheader("Active Users")
-    df = pd.DataFrame(users)
-
+    df = pd.DataFrame(user_data)
     search = st.text_input("Search users by ID")
     if search:
         df = df[df['User ID'].str.contains(search, case=False)]
-
     st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
 
-    if st.button("Logout", key="logout", help="Click to log out"):
-        logout_message = logout_org()  # Use the new logout_org function
-        st.success(logout_message)
-        del st.session_state.organization
-        st.rerun()
-
-
 def get_user_data(org_code):
-    """Fetch user data and update statuses for the organization."""
     users_ref = db.collection('users').where('org_code', '==', org_code)
     users = users_ref.stream()
     
@@ -163,3 +136,22 @@ def get_user_data(org_code):
 
     batch.commit()  # Commit batch updates
     return user_data, registrations_this_month, active_users
+
+def show_org_dashboard(organization):
+    """Basic Organization Dashboard."""
+    display_org_header(organization)
+    
+    # Fetch user data
+    user_data, registrations_this_month, active_users = get_user_data(organization['org_code'])
+
+    # Display metrics
+    display_metrics(registrations_this_month, active_users)
+
+    # Display user table
+    display_active_users_table(user_data)
+
+    # Logout button
+    if st.button("Logout", key="logout", help="Click to log out"):
+        logout_message = logout_org()  # No need to manually delete session state here
+        st.success(logout_message)
+        st.rerun()
