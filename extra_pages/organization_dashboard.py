@@ -65,16 +65,27 @@ def display_submission_history(user_id):
     try:
         submissions_ref = db.collection('users').document(user_id).collection('submissions')
         submissions = submissions_ref.order_by('submit_time', direction=firestore.Query.DESCENDING).stream()
-        
+
+        # Initialize to store the university and program only once
+        university = ""
+        program = ""
         submission_data = []
+
         for submission in submissions:
             submission_dict = submission.to_dict()
+            # Set university and program information once
+            if not university and not program:
+                university = submission_dict.get('university', '')
+                program = submission_dict.get('program', '')
+
             submission_data.append({
-                "Submission Text": submission_dict.get('text', ''),
                 "Submission Date": submission_dict.get('submit_time').strftime('%Y-%m-%d %H:%M:%S') if submission_dict.get('submit_time') else 'Unknown',
-                "University": submission_dict.get('university', ''),
-                "Program": submission_dict.get('program', '')
+                "Submission Text": submission_dict.get('text', '')
             })
+
+        # Display university and program information
+        st.write(f"University: {university}")
+        st.write(f"Program: {program}")
         
         if submission_data:
             st.dataframe(pd.DataFrame(submission_data))
@@ -82,6 +93,7 @@ def display_submission_history(user_id):
             st.info("No submissions found for this user.")
     except Exception as e:
         st.error(f"Error fetching submission history: {str(e)}")
+
 
 
 def get_user_data(org_code):
@@ -224,6 +236,8 @@ def full_org_dashboard(organization):
     if search:
         df = df[df['User ID'].str.contains(search, case=False) | df['email'].str.contains(search, case=False)]
     st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
+
+    st.divider()
 
     # Display submission history for selected user
     selected_user_id = st.selectbox("Select User ID to View Submission History", df['User ID'].tolist())
