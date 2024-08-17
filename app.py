@@ -5,7 +5,7 @@ from modules.menu import menu
 from vocabvan import vocabvan_interface
 import json
 from auth import register_user, login_user, login_organization
-from extra_pages.organization_dashboard import show_org_dashboard
+from extra_pages.organization_dashboard import show_org_dashboard, full_org_dashboard
 from firebase_setup import db
 from streamlit_option_menu import option_menu
 from datetime import datetime
@@ -112,8 +112,13 @@ def main():
     
     # Organization Dashboard
     if 'organization' in st.session_state and st.session_state.organization:
-        # Redirect to the organization dashboard page
-        show_org_dashboard(st.session_state.organization)
+        org = st.session_state.organization
+    
+        # Decide which dashboard to show based on the 'full_dashboard' setting
+        if org.get('full_dashboard', False):
+            full_org_dashboard(org)
+        else:
+            show_org_dashboard(org)
 
     # User Dashboard
     elif 'user' in st.session_state and st.session_state.user:

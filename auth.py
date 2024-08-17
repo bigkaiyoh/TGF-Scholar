@@ -106,7 +106,9 @@ def login_organization(org_code, password):
         if org_data['password'] == password:  # Direct comparison as password is stored in plain text
             return {
                 "org_code": org_code,
-                "org_name": org_data['org_name']
+                "org_name": org_data['org_name'],
+                'timezone': org_data['timezone'],
+                'full_dashboard': org_data.get('full_dashboard', False)
             }, "Organization login successful"
         else:
             return None, "Invalid organization code or password"

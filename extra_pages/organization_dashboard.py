@@ -12,73 +12,116 @@ if 'organization' not in st.session_state:
 
 
 # ------------------------- functions for full dashboard -----------------------
-def todays_total_submissions(data, timezone):
-        user_timezone = pytz.timezone(timezone)
-        today = datetime.now(user_timezone).date()
-        todays_data = data[data['date'] == today]
-        todays_total_submissions = len(todays_data)
-        todays_total_users = todays_data['user_email'].nunique()
+def display_todays_submissions(org_code, timezone):
+    """Display today's total submissions based on the organization's timezone."""
+    user_timezone = pytz.timezone(timezone)
+    start_of_day = datetime.now(user_timezone).replace(hour=0, minute=0, second=0, microsecond=0)
+    start_of_day_utc = start_of_day.astimezone(pytz.utc)
+    
+    submissions_ref = db.collection_group('submissions').where('org_code', '==', org_code).where('submit_time', '>=', start_of_day_utc)
+    todays_submissions = 0
+    users_set = set()
 
-        st.metric(label="You received", value=todays_total_submissions, delta="tests today")
-        st.metric(label="from", value=todays_total_users, delta="students")
+    for submission in submissions_ref.stream():
+        submission_dict = submission.to_dict()
+        submission_time = submission_dict['submit_time'].astimezone(user_timezone).date()
 
+        if submission_time == start_of_day.date():
+            todays_submissions += 1
+            users_set.add(submission_dict['user_id'])
 
-def filter_by_dates(data, selected_date):
-    # Filter based on selected dates
-    if len(selected_date) == 2:
-        start_date, end_date = selected_date
-        data = data[
-            (data['date'].dt.date >= start_date) & 
-            (data['date'].dt.date <= end_date)
-        ]
-    elif len(selected_date) == 1:
-        data = data[
-            data['date'].dt.date == selected_date[0]
-        ]
-    return data
+    todays_total_users = len(users_set)
 
-def filters(filtered_data, apply_email_filter=True):
-    # Convert the 'date' column to datetime type
-    # Make a copy of filtered_data to ensure it's a standalone DataFrame
-    filtered_data = filtered_data.copy()
-    filtered_data['date'] = pd.to_datetime(filtered_data['date'])
+    st.metric(label="Today's Submissions", value=todays_submissions)
+    st.metric(label="Unique Users Today", value=todays_total_users)
 
 
-    # Initialize selected frameworks and sections
-    unique_frameworks = filtered_data['test_framework'].unique()
-    unique_sections = filtered_data['test_section'].unique()
+def display_detailed_user_info(user_data):
+    """Display detailed user information with a clickable submission history."""
+    st.subheader("Active Users")
+    df = pd.DataFrame(user_data)
+    
+    selected_user_id = st.selectbox("Select User ID to View Submission History", df['User ID'].tolist())
+    
+    if selected_user_id:
+        st.write(f"Selected User: {selected_user_id}")
+    
+    st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
+    
+    return selected_user_id
 
-    # Container for selected emails - only used if email filtering is applied
-    if apply_email_filter:
-        unique_emails = filtered_data['user_email'].unique()
-        selected_emails = st.multiselect('Select User Email(s):', unique_emails, default=list(unique_emails))
-
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        # Allow users to select a single date or a range
-        selected_date = st.date_input('Select Date(s):', [])
-    with col2:
-        selected_frameworks = st.multiselect('Select Test Framework(s):', unique_frameworks, default=list(unique_frameworks))
-    with col3:
-        selected_sections = st.multiselect('Select Test Section(s):', unique_sections, default=list(unique_sections))
-
-    # Filter based on selected dates
-    filtered_data = filter_by_dates(filtered_data, selected_date)
-
-    # Continue to filter based on other selections
-    if apply_email_filter:
-        filtered_data = filtered_data[filtered_data['user_email'].isin(selected_emails)]
-
-    filtered_data = filtered_data[
-        filtered_data['test_framework'].isin(selected_frameworks) &
-        filtered_data['test_section'].isin(selected_sections)
-    ]
-
-    # Conditionally return selected_emails
-    if apply_email_filter:
-        return filtered_data, selected_emails
+def display_submission_history(user_id):
+    """Display submission history for a selected user."""
+    st.subheader(f"Submission History for User {user_id}")
+    
+    submissions_ref = db.collection('users').document(user_id).collection('submissions')
+    submissions = submissions_ref.order_by('submit_time', direction=firestore.Query.DESCENDING).stream()
+    
+    submission_data = []
+    for submission in submissions:
+        submission_dict = submission.to_dict()
+        submission_data.append({
+            "Submission Text": submission_dict.get('text', ''),
+            "Submission Date": submission_dict.get('submit_time').strftime('%Y-%m-%d %H:%M:%S'),
+            "University": submission_dict.get('university', ''),
+            "Program": submission_dict.get('program', '')
+        })
+    
+    if submission_data:
+        st.write(pd.DataFrame(submission_data))
     else:
-        return filtered_data
+        st.write("No submissions found for this user.")
+
+
+def get_user_data(org_code):
+    """Fetch user data, calculate metrics, and update user statuses if necessary."""
+    users_ref = db.collection('users').where('org_code', '==', org_code)
+    users = users_ref.stream()
+    
+    current_date = datetime.now(pytz.utc)
+    registrations_this_month = 0
+    active_users = 0
+    user_data = []
+    batch = db.batch()  # Initialize Firestore batch for updates
+
+    for user in users:
+        user_dict = user.to_dict()
+        user_id = user.id
+        register_at = user_dict.get('registerAt')
+        
+        if isinstance(register_at, datetime):
+            register_at = register_at.replace(tzinfo=pytz.utc)
+
+        # Check if the user registered this month
+        if register_at and register_at.month == current_date.month and register_at.year == current_date.year:
+            registrations_this_month += 1
+
+        # Determine the user's expiration date and status
+        expiration_date = register_at + timedelta(days=30) if register_at else None
+        status = 'Active' if expiration_date and current_date < expiration_date else 'Inactive'
+        
+        # If the status has changed, update it in Firestore using batch
+        if status != user_dict.get('status'):
+            user_ref = db.collection('users').document(user_id)
+            batch.update(user_ref, {'status': status})
+
+        # Only add active users to the data list
+        if status == 'Active':
+            active_users += 1
+            user_data.append({
+                'User ID': user_id,
+                'Expiration Date': expiration_date.strftime('%Y-%m-%d') if expiration_date else 'Unknown',
+                'registerAt': register_at.strftime('%Y-%m-%d') if register_at else 'Unknown',
+                'status': status,
+                'submission_count': user_dict.get('submission_count', 0),
+                'engagement_score': user_dict.get('engagement_score', 0),  # Placeholder for engagement
+            })
+
+    # Commit all updates to Firestore at once
+    batch.commit()
+
+    return user_data, registrations_this_month, active_users
+
 
 
 
@@ -101,47 +144,12 @@ def display_active_users_table(user_data):
         df = df[df['User ID'].str.contains(search, case=False)]
     st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
 
-def get_user_data(org_code):
-    users_ref = db.collection('users').where('org_code', '==', org_code)
-    users = users_ref.stream()
-    
-    current_date = datetime.now(pytz.utc)
-    registrations_this_month = 0
-    active_users = 0
-    user_data = []
-    batch = db.batch()
-
-    for user in users:
-        user_dict = user.to_dict()
-        user_id = user.id
-        register_at = user_dict.get('registerAt')
-        if isinstance(register_at, datetime):
-            register_at = register_at.replace(tzinfo=pytz.utc)
-
-        expiration_date = register_at + timedelta(days=30) if register_at else None
-        status = 'Active' if expiration_date and current_date < expiration_date else 'Inactive'
-
-        if status != user_dict.get('status'):
-            batch.update(db.collection('users').document(user_id), {'status': status})
-
-        if register_at and register_at.month == current_date.month and register_at.year == current_date.year:
-            registrations_this_month += 1
-
-        if status == 'Active':
-            active_users += 1
-            user_data.append({
-                'User ID': user_id,
-                'Expiration Date': expiration_date.strftime('%Y-%m-%d') if expiration_date else 'Unknown'
-            })
-
-    batch.commit()  # Commit batch updates
-    return user_data, registrations_this_month, active_users
 
 def show_org_dashboard(organization):
     """Basic Organization Dashboard."""
     display_org_header(organization)
     
-    # Fetch user data
+    # Fetch user data and update statuses
     user_data, registrations_this_month, active_users = get_user_data(organization['org_code'])
 
     # Display metrics
@@ -153,5 +161,30 @@ def show_org_dashboard(organization):
     # Logout button
     if st.button("Logout", key="logout", help="Click to log out"):
         logout_message = logout_org()  # No need to manually delete session state here
+        st.success(logout_message)
+        st.rerun()
+
+def full_org_dashboard(organization):
+    """Full Organization Dashboard with additional metrics and features."""
+    display_org_header(organization)
+    
+    # Fetch user data and update statuses
+    user_data, registrations_this_month, active_users = get_user_data(organization['org_code'])
+
+    # Display base metrics
+    display_metrics(registrations_this_month, active_users)
+    
+    # Additional metrics: Today's total submissions
+    display_todays_submissions(organization['org_code'], organization['timezone'])  # Pass timezone here
+    
+    # Display detailed user table with submission history
+    selected_user_id = display_detailed_user_info(user_data)
+    
+    if selected_user_id:
+        display_submission_history(selected_user_id)
+
+    # Logout button
+    if st.button("Logout", key="logout", help="Click to log out"):
+        logout_message = logout_org()
         st.success(logout_message)
         st.rerun()
