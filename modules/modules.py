@@ -75,33 +75,6 @@ def run_assistant(assistant_id, txt, return_content=False, display_chat=True):
     if return_content:
         return content
     
-# -------------- OCR function -----------------------
-
-# def transcribe_file(uploaded_file):
-#     # Determine the file type and process accordingly
-#     file_type = uploaded_file.type
-#     if file_type == "application/pdf":
-#         return transcribe_pdf(uploaded_file)
-#     elif file_type in ["image/jpeg", "image/png"]:
-#         return transcribe_image(uploaded_file)
-#     else:
-#         return ""
-
-# def transcribe_image(uploaded_file):
-#     # Convert the uploaded file to a PIL Image object
-#     image = Image.open(uploaded_file)
-#     return pytesseract.image_to_string(image)
-
-# def transcribe_pdf(pdf_file):
-#     pdf_document = fitz.open(stream=pdf_file.read(), filetype="pdf")
-#     text = ""
-#     for page_num in range(len(pdf_document)):
-#         page = pdf_document.load_page(page_num)
-#         pix = page.get_pixmap()
-#         img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-#         page_text = pytesseract.image_to_string(img)
-#         text += page_text
-#     return text
 
 # ------------------ transcribe with GPT 4 vision -------------------------
 def convert_image_to_text(uploaded_file):

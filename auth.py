@@ -112,3 +112,9 @@ def login_organization(org_code, password):
             return None, "Invalid organization code or password"
     except Exception as e:
         return None, f"Organization login failed: {str(e)}"
+
+def logout_org():
+    """Logout the organization and clear the organization session state."""
+    if 'organization' in st.session_state:
+        del st.session_state['organization']
+    return "Organization logout successful"
