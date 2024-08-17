@@ -149,8 +149,8 @@ def get_user_data(org_code):
 
             user_data.append({
                 'User ID': user_id,
-                'Expiration Date': expiration_date.strftime('%Y-%m-%d') if expiration_date else 'Unknown',
                 'registerAt': register_at.strftime('%Y-%m-%d') if register_at else 'Unknown',
+                'Expiration Date': expiration_date.strftime('%Y-%m-%d') if expiration_date else 'Unknown',
                 'total_submission': total_submissions,
                 'todays_submission': todays_submissions,
             })
@@ -177,14 +177,20 @@ def display_metrics(registrations_this_month, active_users):
 def display_active_users_table(user_data):
     st.subheader("Active Users")
     df = pd.DataFrame(user_data)
-    search = st.text_input("Search users by ID or Email")
-    if search:
-        df = df[df['User ID'].str.contains(search, case=False) | df['email'].str.contains(search, case=False)]
+    
+    # Commenting out the search functionality
+    # search = st.text_input("Search users by ID or Email")
+    # if search:
+    #     if 'email' in df.columns:
+    #         df = df[df['User ID'].str.contains(search, case=False) | df['email'].str.contains(search, case=False)]
+    #     else:
+    #         df = df[df['User ID'].str.contains(search, case=False)]
     
     if df.empty:
-        st.info("No users found matching your search criteria.")
+        st.info("No users found.")
     else:
         st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
+
 
 
 def show_org_dashboard(organization):
