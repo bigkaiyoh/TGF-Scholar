@@ -198,7 +198,25 @@ def display_org_header(organization):
     st.markdown(f"<h1 class='big-font'>Welcome, {organization['org_name']}!</h1>", unsafe_allow_html=True)
     st.markdown(f"<p><strong>Organization Code:</strong> {organization['org_code']}</p>", unsafe_allow_html=True)
 
-def display_metrics(registrations_this_month, active_users, todays_submissions, todays_users):
+def display_metrics(registrations_this_month, active_users):
+    col1, col2 = st.columns(2)
+
+    metrics = [
+        ("Registrations This Month", registrations_this_month),
+        ("Active Users", active_users)
+    ]
+    
+    for i, (label, value) in enumerate(metrics):
+        with [col1, col2][i]:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-label">{label}</div>
+                <div class="metric-value">{value}</div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+
+def display_full_metrics(registrations_this_month, active_users, todays_submissions, todays_users):
     col1, col2, col3, col4 = st.columns(4)
     metrics = [
         ("Today's Submissions", todays_submissions),
@@ -229,6 +247,7 @@ def display_active_users_table(user_data):
 
 def show_org_dashboard(organization):
     """Basic Organization Dashboard."""
+    apply_custom_css()
     display_org_header(organization)
     
     # Fetch user data and update statuses
@@ -256,7 +275,7 @@ def full_org_dashboard(organization):
     todays_submissions = len(submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()])
     todays_users = submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()]['user_id'].nunique()
 
-    display_metrics(registrations_this_month, active_users, todays_submissions, todays_users)
+    display_full_metrics(registrations_this_month, active_users, todays_submissions, todays_users)
 
     st.markdown("---")
 
