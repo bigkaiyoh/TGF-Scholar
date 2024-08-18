@@ -10,6 +10,39 @@ if 'organization' not in st.session_state:
     st.session_state.organization = None
 
 
+def apply_custom_css():
+    st.markdown("""
+    <style>
+    .big-font {
+        font-size: 2.5rem !important;
+        font-weight: 600 !important;
+        color: #1E88E5 !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .metric-card {
+        background-color: #f0f2f6;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    }
+    .metric-label {
+        font-size: 1rem;
+        color: #555;
+        margin-bottom: 0.5rem;
+    }
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1E88E5;
+    }
+    .stButton>button {
+        width: 100%;
+        background-color: #1E88E5;
+        color: white;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 
 
 # ------------------------- functions for full dashboard -----------------------
@@ -59,21 +92,18 @@ def display_detailed_user_info(user_data):
     return selected_user_id
 
 def display_submission_history(user_id):
-    """Display submission history for a selected user."""
     st.subheader(f"Submission History for {user_id}")
     
     try:
         submissions_ref = db.collection('users').document(user_id).collection('submissions')
         submissions = submissions_ref.order_by('submit_time', direction=firestore.Query.DESCENDING).stream()
 
-        # Initialize to store the university and program only once
         university = ""
         program = ""
         submission_data = []
 
         for submission in submissions:
             submission_dict = submission.to_dict()
-            # Set university and program information once
             if not university and not program:
                 university = submission_dict.get('university', '')
                 program = submission_dict.get('program', '')
@@ -83,16 +113,17 @@ def display_submission_history(user_id):
                 "Submission Text": submission_dict.get('text', '')
             })
 
-        # Display university and program information
-        st.write(f"University: {university}")
-        st.write(f"Program: {program}")
+        st.markdown(f"**University:** {university}")
+        st.markdown(f"**Program:** {program}")
         
         if submission_data:
-            st.dataframe(pd.DataFrame(submission_data))
+            df = pd.DataFrame(submission_data)
+            st.dataframe(df.style.set_properties(**{'text-align': 'left', 'white-space': 'pre-wrap'}).set_table_styles([{'selector': 'th', 'props': [('text-align', 'left')]}]), use_container_width=True)
         else:
             st.info("No submissions found for this user.")
     except Exception as e:
         st.error(f"Error fetching submission history: {str(e)}")
+
 
 
 
@@ -165,31 +196,34 @@ def get_user_data(org_code):
 
 def display_org_header(organization):
     st.markdown(f"<h1 class='big-font'>Welcome, {organization['org_name']}!</h1>", unsafe_allow_html=True)
-    st.markdown(f"**Organization Code:** {organization['org_code']}")
+    st.markdown(f"<p><strong>Organization Code:</strong> {organization['org_code']}</p>", unsafe_allow_html=True)
 
-def display_metrics(registrations_this_month, active_users):
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric(label="Registrations This Month", value=registrations_this_month)
-    with col2:
-        st.metric(label="Active Users", value=active_users)
+def display_metrics(registrations_this_month, active_users, todays_submissions, todays_users):
+    col1, col2, col3, col4 = st.columns(4)
+    metrics = [
+        ("Registrations This Month", registrations_this_month),
+        ("Active Users", active_users),
+        ("Today's Submissions", todays_submissions),
+        ("Today's Active Students", todays_users)
+    ]
+    
+    for i, (label, value) in enumerate(metrics):
+        with [col1, col2, col3, col4][i]:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-label">{label}</div>
+                <div class="metric-value">{value}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
 def display_active_users_table(user_data):
     st.subheader("Active Users")
     df = pd.DataFrame(user_data)
     
-    # Commenting out the search functionality
-    # search = st.text_input("Search users by ID or Email")
-    # if search:
-    #     if 'email' in df.columns:
-    #         df = df[df['User ID'].str.contains(search, case=False) | df['email'].str.contains(search, case=False)]
-    #     else:
-    #         df = df[df['User ID'].str.contains(search, case=False)]
-    
     if df.empty:
         st.info("No users found.")
     else:
-        st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
+        st.dataframe(df.style.set_properties(**{'text-align': 'left'}).highlight_max(subset=['total_submission'], color='#e6f3ff'), use_container_width=True)
 
 
 
@@ -213,44 +247,29 @@ def show_org_dashboard(organization):
         st.rerun()
 
 def full_org_dashboard(organization):
-    """Full Organization Dashboard with additional metrics and features."""
+    apply_custom_css()
     display_org_header(organization)
     
-    # Fetch user data and update statuses
     user_data, registrations_this_month, active_users = get_user_data(organization['org_code'])
-
-    # Fetch submission data for the organization
     submissions_df = fetch_submission_data(user_data)
 
-    # Display base metrics
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric(label="Registrations This Month", value=registrations_this_month)
-    with col2:
-        st.metric(label="Active Users", value=active_users)
-    with col3:
-        todays_submissions = len(submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()])
-        st.metric(label="Today's Submissions", value=todays_submissions)
-    with col4:
-        todays_users = submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()]['user_id'].nunique()
-        st.metric(label="Today's Active Students", value=todays_users)
+    todays_submissions = len(submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()])
+    todays_users = submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()]['user_id'].nunique()
 
-    # Display user table with search functionality
-    st.subheader("Active Users")
-    # search = st.text_input("Search users by ID or Email")
-    df = pd.DataFrame(user_data)
-    # if search:
-    #     df = df[df['User ID'].str.contains(search, case=False) | df['email'].str.contains(search, case=False)]
-    st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
+    display_metrics(registrations_this_month, active_users, todays_submissions, todays_users)
 
-    st.divider()
+    st.markdown("---")
 
-    # Display submission history for selected user
+    display_active_users_table(user_data)
+
+    st.markdown("---")
+
     selected_user_id = st.selectbox("Select User ID to View Submission History", df['User ID'].tolist())
     if selected_user_id:
         display_submission_history(selected_user_id)
 
-    # Logout button
+    st.markdown("---")
+
     if st.button("Logout", key="logout", help="Click to log out"):
         logout_message = logout_org()
         st.success(logout_message)
