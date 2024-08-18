@@ -16,7 +16,7 @@ def apply_custom_css():
     .big-font {
         font-size: 2.5rem !important;
         font-weight: 600 !important;
-        color: #1E88E5 !important;
+        color: #F39200 !important;
         margin-bottom: 0.5rem !important;
     }
     .metric-card {
@@ -201,10 +201,10 @@ def display_org_header(organization):
 def display_metrics(registrations_this_month, active_users, todays_submissions, todays_users):
     col1, col2, col3, col4 = st.columns(4)
     metrics = [
-        ("Registrations This Month", registrations_this_month),
-        ("Active Users", active_users),
         ("Today's Submissions", todays_submissions),
-        ("Today's Active Students", todays_users)
+        ("Today's Active Students", todays_users),
+        ("Registrations This Month", registrations_this_month),
+        ("Active Users", active_users)
     ]
     
     for i, (label, value) in enumerate(metrics):
@@ -263,6 +263,9 @@ def full_org_dashboard(organization):
     display_active_users_table(user_data)
 
     st.markdown("---")
+
+    # Create the DataFrame here
+    df = pd.DataFrame(user_data)
 
     selected_user_id = st.selectbox("Select User ID to View Submission History", df['User ID'].tolist())
     if selected_user_id:
