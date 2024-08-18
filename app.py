@@ -25,6 +25,8 @@ if 'user' not in st.session_state:
     st.session_state.user = None
 if 'organization' not in st.session_state:
     st.session_state.organization = None
+if 'feedback' not in st.session_state:
+    st.session_state.feedback = None
 
 #Page Configuration
 fc = Image.open("src/TGF-Scholar-favicon.png")
@@ -87,6 +89,17 @@ def get_input():
 
     return txt
 
+def display_feedback():
+    if 'feedback' in st.session_state and st.session_state.feedback:
+        st.subheader("AIからのフィードバック")
+        st.success("評価が完了しました！")
+
+        # Display feedback in a styled box with background color
+        st.markdown(f"""
+            <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #e8f4f8;">
+                {st.session_state.feedback}
+            </div>
+        """, unsafe_allow_html=True)
 
 
 def save_submission(user_id, txt, uni_name, program_name):
@@ -148,8 +161,9 @@ def main():
         # 評価表示画面
         if submit_button:
             if user['status'] == 'Active':
-                # Reset transcription_done to False
+                # Reset transcription_done and feedback
                 st.session_state.transcription_done = False  
+                st.session_state.feedback = None
 
                 with st.expander("入力内容", expanded=False):
                     st.write(f"**志望校名**: {uni_name}")
@@ -166,21 +180,16 @@ def main():
                     
                     st.write(f'文字数: {len(txt.split())} 文字')
                 
-                st.subheader("AIからのフィードバック")
-                feedback = run_assistant(assistant_id=assistant, txt=information, return_content=True, display_chat=False)
-                st.success("評価が完了しました！")
-
-                # Display feedback in a styled box with background color
-                st.markdown(f"""
-                    <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #e8f4f8;">
-                        {feedback}
-                    </div>
-                """, unsafe_allow_html=True)
-
+                st.session_state.feedback = run_assistant(assistant_id=assistant, txt=information, return_content=True, display_chat=False)
+                
                 # Save submission using the dedicated function
                 save_submission(user['id'], txt, uni_name, program_name)
+
             else:
                 st.error("Your account is inactive. You cannot submit evaluations.")
+
+        #Display feedback
+        display_feedback()
 
 
     # --------------- Handling Authentication Below -----------------
