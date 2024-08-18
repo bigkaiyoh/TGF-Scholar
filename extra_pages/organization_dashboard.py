@@ -202,7 +202,7 @@ def display_metrics(registrations_this_month, active_users):
     col1, col2 = st.columns(2)
 
     metrics = [
-        ("Registrations This Month", registrations_this_month),
+        ("Monthly Signups", registrations_this_month),
         ("Active Users", active_users)
     ]
     
@@ -221,7 +221,7 @@ def display_full_metrics(registrations_this_month, active_users, todays_submissi
     metrics = [
         ("Today's Submissions", todays_submissions),
         ("Today's Active Students", todays_users),
-        ("Registrations This Month", registrations_this_month),
+        ("Monthly Signups", registrations_this_month),
         ("Active Users", active_users)
     ]
     
