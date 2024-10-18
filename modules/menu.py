@@ -78,12 +78,13 @@ def authenticated_menu():
 
         st.divider()
 
-        st.page_link("app.py", label="TGF-Scholar", icon="🏠")
-        st.page_link("pages/Settings.py", label="設定", icon="⚙️")
+        st.page_link("app.py", label="TGF-Scholar", icon="✏️")
         
         # Check for Friedrich Sartre Option
         if check_sartre_enabled(user['org_code']):
             st.page_link("pages/Sartre.py", label="サルトルの部屋", icon="💭")
+
+        st.page_link("pages/Settings.py", label="設定", icon="⚙️")
 
         if st.button("ログアウト"):
             logout_user()
