@@ -42,66 +42,40 @@ st.set_page_config(
 # Custom CSS for improved styling
 st.markdown("""
 <style>
-    /* Existing styles */
     .main-title {
         font-size: 50px;
         text-align: center;
         color: #0097b2;
-        margin-bottom: 0px;
+        margin-bottom: 0px; /* Reduce the gap below the title */
     }
     .catchphrase {
         font-size: 20px;
         text-align: center;
         color: #0097b2;
-        margin-top: -10px;
-        margin-bottom: 30px;
+        margin-top: -10px; /* Reduce the gap above the catchphrase */
     }
-    .nav-container {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        margin-bottom: 30px;
+    .stButton>button {
+        width: 100%;
     }
-    .nav-item {
-        padding: 8px 24px;
-        border-radius: 6px;
-        text-decoration: none;
-        color: #0097b2;
-        transition: all 0.3s ease;
+    .auth-form {
+        background-color: #f0f8ff;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    .nav-item.active {
-        background-color: #0097b2;
-        color: white;
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 24px;
     }
-    .nav-item:hover:not(.active) {
+    
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        padding: 0 24px;
+        background-color: transparent;
+        border-radius: 4px;
+    }
+    
+    .stTabs [aria-selected="true"] {
         background-color: rgba(0, 151, 178, 0.1);
-    }
-    /* Improve tab styling */
-    .stTabs {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-    /* Improve form styling */
-    .input-container {
-        background: white;
-        padding: 25px;
-        border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-    /* Improve button styling */
-    .stButton > button {
-        background-color: #0097b2;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 6px;
-        transition: all 0.3s ease;
-    }
-    .stButton > button:hover {
-        background-color: #007d91;
-        transform: translateY(-1px);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -245,20 +219,9 @@ def main():
                 menu_title=None,
                 options=["Login", "Register"],
                 icons=["box-arrow-in-right", "person-plus"],
+                menu_icon="cast",
                 default_index=0,
                 orientation="horizontal",
-                styles={
-                    "container": {"padding": "0!important", "background-color": "transparent"},
-                    "icon": {"color": "#0097b2", "font-size": "20px"},
-                    "nav-link": {
-                        "font-size": "16px",
-                        "text-align": "center",
-                        "padding": "10px 20px",
-                        "margin": "0px 10px",
-                        "--hover-color": "rgba(0, 151, 178, 0.1)",
-                    },
-                    "nav-link-selected": {"background-color": "#0097b2"},
-                }
             )
 
             st.markdown("<div class='auth-form'>", unsafe_allow_html=True)
