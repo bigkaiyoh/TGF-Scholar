@@ -41,7 +41,7 @@ def apply_custom_css():
 # Display header for the organization
 def display_org_header(organization):
     st.markdown(f"<h1 class='big-font'>{organization['org_name']}</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p><strong>Organization Code:</strong> {organization['org_code']}</p>", unsafe_allow_html=True)
+    st.markdown(f"<p><strong>教育機関コード:</strong> {organization['org_code']}</p>", unsafe_allow_html=True)
 
 # Fetch user data and update statuses
 def get_user_data(org_code):
@@ -97,8 +97,8 @@ def get_user_data(org_code):
 
             user_data.append({
                 'User ID': user_id,
-                'registerAt': register_at.strftime('%Y-%m-%d') if register_at else 'Unknown',
-                'Expiration Date': expiration_date.strftime('%Y-%m-%d') if expiration_date else 'Unknown',
+                'registerAt': register_at.strftime('%Y-%m-%d') if register_at else '不明',
+                'Expiration Date': expiration_date.strftime('%Y-%m-%d') if expiration_date else '不明',
                 'total_submission': total_submissions,
                 'todays_submission': todays_submissions,
             })
@@ -108,13 +108,22 @@ def get_user_data(org_code):
 
     return user_data, registrations_this_month, active_users
 
-
-
 def display_active_users_table(user_data):
-    st.subheader("Active Users")
+    st.subheader("アクティブユーザー")
     df = pd.DataFrame(user_data)
     
     if df.empty:
-        st.info("No users found.")
+        st.info("ユーザーが見つかりませんでした。")
     else:
-        st.dataframe(df.style.set_properties(**{'text-align': 'left'}).highlight_max(subset=['total_submission'], color='#e6f3ff'), use_container_width=True)
+        # Rename columns to Japanese
+        df.rename(columns={
+            'User ID': 'ユーザーID',
+            'registerAt': '登録日',
+            'Expiration Date': '有効期限',
+            'total_submission': '総提出数',
+            'todays_submission': '本日の提出数'
+        }, inplace=True)
+        st.dataframe(
+            df.style.set_properties(**{'text-align': 'left'}).highlight_max(subset=['総提出数'], color='#e6f3ff'),
+            use_container_width=True
+        )

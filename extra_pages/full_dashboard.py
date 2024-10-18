@@ -26,25 +26,23 @@ def fetch_submission_data(users_data):
                     })
                     submissions.append(sub_data)
                 else:
-                    st.warning(f"Missing 'submit_time' for submission by user {user_id}. Skipping.")
+                    st.warning(f"ユーザー {user_id} の提出に 'submit_time' がありません。スキップします。")
         except Exception as e:
-            st.error(f"Error fetching submissions for user {user_id}: {str(e)}")
+            st.error(f"ユーザー {user_id} の提出を取得中にエラーが発生しました: {str(e)}")
     if submissions:
         return pd.DataFrame(submissions)
     else:
-        st.warning("No valid submissions found.")
+        st.warning("有効な提出がまだありません。")
         return pd.DataFrame()  # Return an empty DataFrame if no valid data
-
-
 
 # Display full metrics (for full dashboard view)
 def display_full_metrics(registrations_this_month, active_users, todays_submissions, todays_users):
     col1, col2, col3, col4 = st.columns(4)
     metrics = [
-        ("Today's Submissions", todays_submissions),
-        ("Today's Active Students", todays_users),
-        ("Monthly Signups", registrations_this_month),
-        ("Active Users", active_users)
+        ("本日の提出数", todays_submissions),
+        ("本日のアクティブユーザー数", todays_users),
+        ("今月の登録数", registrations_this_month),
+        ("アクティブユーザー数", active_users)
     ]
     
     for i, (label, value) in enumerate(metrics):
@@ -56,24 +54,9 @@ def display_full_metrics(registrations_this_month, active_users, todays_submissi
             </div>
             """, unsafe_allow_html=True)
 
-# # Display detailed user info (for full dashboard)
-# def display_detailed_user_info(user_data):
-#     """Display detailed user information with a clickable submission history."""
-#     st.subheader("Active Users")
-#     df = pd.DataFrame(user_data)
-    
-#     selected_user_id = st.selectbox("Select User ID to View Submission History", df['User ID'].tolist())
-    
-#     if selected_user_id:
-#         st.write(f"Selected User: {selected_user_id}")
-    
-#     st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
-    
-#     return selected_user_id
-
 # Display submission history for a user
 def display_submission_history(user_id):
-    st.subheader(f"Submission History for {user_id}")
+    st.subheader(f"{user_id}の提出履歴")
     
     try:
         submissions_ref = db.collection('users').document(user_id).collection('submissions')
@@ -90,21 +73,20 @@ def display_submission_history(user_id):
                 program = submission_dict.get('program', '')
 
             submission_data.append({
-                "Submission Date": submission_dict.get('submit_time').strftime('%Y-%m-%d %H:%M:%S') if submission_dict.get('submit_time') else 'Unknown',
-                "Submission Text": submission_dict.get('text', '')
+                "提出日時": submission_dict.get('submit_time').strftime('%Y-%m-%d %H:%M:%S') if submission_dict.get('submit_time') else '不明',
+                "提出志望動機書": submission_dict.get('text', '')
             })
 
-        st.markdown(f"**University:** {university}")
-        st.markdown(f"**Program:** {program}")
+        st.markdown(f"**大学:** {university}")
+        st.markdown(f"**プログラム:** {program}")
         
         if submission_data:
             df = pd.DataFrame(submission_data)
             st.dataframe(df.style.set_properties(**{'text-align': 'left', 'white-space': 'pre-wrap'}).set_table_styles([{'selector': 'th', 'props': [('text-align', 'left')]}]), use_container_width=True)
         else:
-            st.info("No submissions found for this user.")
+            st.info("このユーザーの提出は見つかりませんでした。")
     except Exception as e:
-        st.error(f"Error fetching submission history: {str(e)}")
-
+        st.error(f"提出履歴の取得中にエラーが発生しました: {str(e)}")
 
 def full_org_dashboard(organization):
     apply_custom_css()
@@ -119,7 +101,7 @@ def full_org_dashboard(organization):
             todays_submissions = len(submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()])
             todays_users = submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()]['user_id'].nunique()
         else:
-            st.warning("No submissions with valid dates found.")
+            st.warning("有効な日付のある提出がありません。")
             todays_submissions = 0
             todays_users = 0
     else:
@@ -138,14 +120,13 @@ def full_org_dashboard(organization):
     df = pd.DataFrame(user_data)
 
     if not df.empty:
-        selected_user_id = st.selectbox("Select User ID to View Submission History", df['User ID'].tolist())
+        selected_user_id = st.selectbox("提出履歴を表示するユーザーIDを選択してください", df['User ID'].tolist())
         if selected_user_id:
             display_submission_history(selected_user_id)
 
-
     st.markdown("---")
 
-    if st.button("Logout", key="logout", help="Click to log out"):
+    if st.button("ログアウト", key="logout", help="クリックしてログアウト"):
         logout_message = logout_org()
         st.success(logout_message)
         st.rerun()

@@ -4,14 +4,13 @@ from auth.login_manager import logout_org
 from setup.firebase_setup import db
 from auth.login_manager import logout_org
 
-
 # Display basic metrics
 def display_metrics(registrations_this_month, active_users):
     col1, col2 = st.columns(2)
 
     metrics = [
-        ("Monthly Signups", registrations_this_month),
-        ("Active Users", active_users)
+        ("今月の登録数", registrations_this_month),
+        ("アクティブユーザー数", active_users)
     ]
     
     for i, (label, value) in enumerate(metrics):
@@ -22,7 +21,6 @@ def display_metrics(registrations_this_month, active_users):
                 <div class="metric-value">{value}</div>
             </div>
             """, unsafe_allow_html=True)
-
 
 def show_org_dashboard(organization):
     """Basic Organization Dashboard."""
@@ -39,7 +37,7 @@ def show_org_dashboard(organization):
     display_active_users_table(user_data)
 
     # Logout button
-    if st.button("Logout", key="logout", help="Click to log out"):
+    if st.button("ログアウト", key="logout", help="クリックしてログアウト"):
         logout_message = logout_org()  # No need to manually delete session state here
         st.success(logout_message)
         st.rerun()
