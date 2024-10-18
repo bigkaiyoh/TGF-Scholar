@@ -212,6 +212,7 @@ def main():
 
     # --------------- Handling Authentication Below -----------------
     else:
+        add_footer()
         # Center the content
         _, col, _ = st.columns([1, 2, 1])
 
