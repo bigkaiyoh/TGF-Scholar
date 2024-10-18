@@ -2,6 +2,9 @@ import streamlit as st
 from modules.modules import run_assistant, get_secret
 from modules.menu import menu
 
+if 'user' not in st.session_state:
+    st.session_state.user = None
+
 def chat_with_sartre():
     menu()
     secrets = get_secret()
