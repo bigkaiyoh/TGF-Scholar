@@ -8,22 +8,29 @@ import pytz
 # Render the user login form
 def render_login_form():
     """Renders the login form UI and returns the inputs."""
+    st.markdown("<div class='input-container'>", unsafe_allow_html=True)
     with st.form("login_form"):
-        st.subheader("ログイン")
+        st.markdown("""
+            <h3 style='color: #0097b2; margin-bottom: 20px;'>Student Login</h3>
+        """, unsafe_allow_html=True)
         user_id = st.text_input("ユーザーID", placeholder="ユーザーIDを入力してください")
         password = st.text_input("パスワード", type="password", placeholder="パスワードを入力してください")
         submit_button = st.form_submit_button("ログイン", use_container_width=True)
-    
+    st.markdown("</div>", unsafe_allow_html=True)
     return user_id, password, submit_button
 
 # Render the organization login form
 def render_org_login_form():
     """Renders the organization login form UI and returns the inputs."""
+    st.markdown("<div class='input-container'>", unsafe_allow_html=True)
     with st.form("org_login_form"):
+        st.markdown("""
+            <h3 style='color: #0097b2; margin-bottom: 20px;'>Organization Login</h3>
+        """, unsafe_allow_html=True)
         org_code = st.text_input("教育機関コード", placeholder="教育機関コードを入力してください")
         org_password = st.text_input("パスワード", type="password", placeholder="教育機関のパスワードを入力してください")
         org_submit_button = st.form_submit_button("教育機関としてログイン", use_container_width=True)
-    
+    st.markdown("</div>", unsafe_allow_html=True)
     return org_code, org_password, org_submit_button
 
 # User login logic
