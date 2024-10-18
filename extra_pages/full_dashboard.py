@@ -18,15 +18,25 @@ def fetch_submission_data(users_data):
             submission_ref = db.collection('users').document(user_id).collection('submissions').stream()
             for submission in submission_ref:
                 sub_data = submission.to_dict()
-                sub_data.update({
-                    'user_id': user_id,
-                    'timestamp': sub_data.get('submit_time'),
-                    'date': sub_data.get('submit_time').date() if sub_data.get('submit_time') else None
-                })
-                submissions.append(sub_data)
+                # Ensure 'submit_time' exists, otherwise skip the submission
+                if sub_data.get('submit_time'):
+                    sub_data.update({
+                        'user_id': user_id,
+                        'timestamp': sub_data.get('submit_time'),
+                        'date': sub_data.get('submit_time').date()  # Make sure date field exists
+                    })
+                    submissions.append(sub_data)
+                else:
+                    st.warning(f"Missing 'submit_time' for submission by user {user_id}. Skipping.")
         except Exception as e:
             st.error(f"Error fetching submissions for user {user_id}: {str(e)}")
-    return pd.DataFrame(submissions)
+    
+    if submissions:
+        return pd.DataFrame(submissions)
+    else:
+        st.warning("No valid submissions found.")
+        return pd.DataFrame()  # Return an empty DataFrame if no valid data
+
 
 # Display full metrics (for full dashboard view)
 def display_full_metrics(registrations_this_month, active_users, todays_submissions, todays_users):
@@ -100,12 +110,22 @@ def display_submission_history(user_id):
 def full_org_dashboard(organization):
     apply_custom_css()
     display_org_header(organization)
-    
+
     user_data, registrations_this_month, active_users = get_user_data(organization['org_code'])
     submissions_df = fetch_submission_data(user_data)
 
-    todays_submissions = len(submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()])
-    todays_users = submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()]['user_id'].nunique()
+    if not submissions_df.empty:
+        # Ensure 'date' column exists before processing it
+        if 'date' in submissions_df.columns:
+            todays_submissions = len(submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()])
+            todays_users = submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()]['user_id'].nunique()
+        else:
+            st.warning("No submissions with valid dates found.")
+            todays_submissions = 0
+            todays_users = 0
+    else:
+        todays_submissions = 0
+        todays_users = 0
 
     display_full_metrics(registrations_this_month, active_users, todays_submissions, todays_users)
 
