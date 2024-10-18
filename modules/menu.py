@@ -83,7 +83,7 @@ def authenticated_menu():
         
         # Check for Friedrich Sartre Option
         if check_sartre_enabled(user['org_code']):
-            st.page_link("pages/Sartre.py", label="自分との対話", icon="🧠")
+            st.page_link("pages/Sartre.py", label="サルトルの部屋", icon="💭")
 
         if st.button("ログアウト"):
             logout_user()
