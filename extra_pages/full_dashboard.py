@@ -137,10 +137,11 @@ def full_org_dashboard(organization):
     # Create the DataFrame here
     df = pd.DataFrame(user_data)
 
-    selected_user_id = st.selectbox("Select User ID to View Submission History", df['User ID'].tolist())
+    if not df.empty:
+        selected_user_id = st.selectbox("Select User ID to View Submission History", df['User ID'].tolist())
+        if selected_user_id:
+            display_submission_history(selected_user_id)
 
-    if selected_user_id:
-        display_submission_history(selected_user_id)
 
     st.markdown("---")
 
