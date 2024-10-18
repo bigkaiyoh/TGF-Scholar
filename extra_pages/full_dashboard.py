@@ -13,7 +13,7 @@ def fetch_submission_data(users_data):
     """Fetch submission data for users."""
     submissions = []
     for user in users_data:
-        user_id = user['id']  # Use document ID which represents 'id'
+        user_id = user['User ID']  # Use document ID which represents 'id'
         try:
             submission_ref = db.collection('users').document(user_id).collection('submissions').stream()
             for submission in submission_ref:
@@ -56,20 +56,20 @@ def display_full_metrics(registrations_this_month, active_users, todays_submissi
             </div>
             """, unsafe_allow_html=True)
 
-# Display detailed user info (for full dashboard)
-def display_detailed_user_info(user_data):
-    """Display detailed user information with a clickable submission history."""
-    st.subheader("Active Users")
-    df = pd.DataFrame(user_data)
+# # Display detailed user info (for full dashboard)
+# def display_detailed_user_info(user_data):
+#     """Display detailed user information with a clickable submission history."""
+#     st.subheader("Active Users")
+#     df = pd.DataFrame(user_data)
     
-    selected_user_id = st.selectbox("Select User ID to View Submission History", df['id'].tolist())
+#     selected_user_id = st.selectbox("Select User ID to View Submission History", df['User ID'].tolist())
     
-    if selected_user_id:
-        st.write(f"Selected User: {selected_user_id}")
+#     if selected_user_id:
+#         st.write(f"Selected User: {selected_user_id}")
     
-    st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
+#     st.dataframe(df.style.set_properties(**{'text-align': 'left'}), use_container_width=True)
     
-    return selected_user_id
+#     return selected_user_id
 
 # Display submission history for a user
 def display_submission_history(user_id):
@@ -137,7 +137,8 @@ def full_org_dashboard(organization):
     # Create the DataFrame here
     df = pd.DataFrame(user_data)
 
-    selected_user_id = st.selectbox("Select User ID to View Submission History", df['id'].tolist())
+    selected_user_id = st.selectbox("Select User ID to View Submission History", df['User ID'].tolist())
+
     if selected_user_id:
         display_submission_history(selected_user_id)
 
