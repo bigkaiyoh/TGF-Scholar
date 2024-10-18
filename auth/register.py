@@ -14,7 +14,7 @@ def register_user():
     if 'step' not in st.session_state:
         st.session_state.step = 1
 
-    with st.container():
+    with st.container(border=True):
         st.subheader("Registration Form")
 
         # Step 1: Input User Information
@@ -29,7 +29,7 @@ def register_user():
                 else:
                     # Check if user ID already exists
                     user_ref = db.collection('users').document(user_id).get()
-                    if user_ref.exists():
+                    if user_ref.exists:
                         st.error("User with this ID already exists")
                     else:
                         st.session_state.user_id = user_id
@@ -48,7 +48,7 @@ def register_user():
                     else:
                         # Fetch organization details from Firestore
                         org_ref = db.collection('organizations').document(org_code).get()
-                        if not org_ref.exists():
+                        if not org_ref.exists:
                             st.error("Invalid Organization Code")
                         else:
                             st.session_state.org_code = org_code
