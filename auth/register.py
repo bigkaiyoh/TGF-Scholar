@@ -42,7 +42,8 @@ def register_user():
     if st.session_state.step == 2:
         with st.container(border=True):
             st.subheader("Step 2: Enter Organization Information")
-            org_code = st.text_input("Enter Organization Code:")
+            org_code = st.text_input("Enter Organization Code:", help="Hit enter")
+            
             if org_code:
                 # Fetch organization details from Firestore
                 org_ref = db.collection('organizations').document(org_code).get()
