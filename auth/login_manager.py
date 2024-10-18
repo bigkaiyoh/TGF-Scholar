@@ -19,8 +19,6 @@ def render_login_form():
 # Render the organization login form
 def render_org_login_form():
     """Renders the organization login form UI and returns the inputs."""
-    st.markdown("<hr>", unsafe_allow_html=True)
-    st.subheader("教育機関ログイン")
     with st.form("org_login_form"):
         org_code = st.text_input("教育機関コード", placeholder="教育機関コードを入力してください")
         org_password = st.text_input("パスワード", type="password", placeholder="教育機関のパスワードを入力してください")

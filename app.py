@@ -29,7 +29,7 @@ if 'organization' not in st.session_state:
     st.session_state.organization = None
 if 'feedback' not in st.session_state:
     st.session_state.feedback = None
-    
+
 
 #Page Configuration
 fc = Image.open("src/TGF-Scholar-favicon.png")
@@ -62,6 +62,20 @@ st.markdown("""
         padding: 2rem;
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 24px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        padding: 0 24px;
+        background-color: transparent;
+        border-radius: 4px;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background-color: rgba(0, 151, 178, 0.1);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -216,31 +230,36 @@ def main():
                 register_user()
 
             elif choice == "Login":
-                user_id, password, submit_button = render_login_form()
-                if submit_button:
-                    if user_id and password:
-                        user, message = login_user(user_id, password)
-                        if user:
-                            st.success(message)
-                            st.session_state.user = user
-                            st.rerun()
+                # Create tabs for user and organization login
+                user_tab, org_tab = st.tabs(["学生", "教育機関"])
+                
+                with user_tab:
+                    user_id, password, submit_button = render_login_form()
+                    if submit_button:
+                        if user_id and password:
+                            user, message = login_user(user_id, password)
+                            if user:
+                                st.success(message)
+                                st.session_state.user = user
+                                st.rerun()
+                            else:
+                                st.error(message)
                         else:
-                            st.error(message)
-                    else:
-                        st.warning("Please enter both user ID and password.")
+                            st.warning("Please enter both user ID and password.")
 
-                org_code, org_password, org_submit_button = render_org_login_form()
-                if org_submit_button:
-                    if org_code and org_password:
-                        org, message = login_organization(org_code, org_password)
-                        if org:
-                            st.success(message)
-                            st.session_state.organization = org
-                            st.rerun()
+                with org_tab:
+                    org_code, org_password, org_submit_button = render_org_login_form()
+                    if org_submit_button:
+                        if org_code and org_password:
+                            org, message = login_organization(org_code, org_password)
+                            if org:
+                                st.success(message)
+                                st.session_state.organization = org
+                                st.rerun()
+                            else:
+                                st.error(message)
                         else:
-                            st.error(message)
-                    else:
-                        st.warning("Please enter both organization code and password.")
+                            st.warning("Please enter both organization code and password.")
 
             st.markdown("</div>", unsafe_allow_html=True)
 
