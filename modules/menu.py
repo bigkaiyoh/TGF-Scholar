@@ -32,6 +32,26 @@ def check_sartre_enabled(org_code):
         st.error(f"Error retrieving Sartre field: {e}")
         return False
     
+def add_footer():
+    footer = """
+    <style>
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: transparent;
+            color: black;
+            text-align: center;
+            padding: 10px;
+        }
+    </style>
+    <div class="footer">
+        <p>Powered by <a href="https://nuginy.com" target="_blank" style="color:#0097B2; text-decoration:none;">Nuginy</a></p>
+    </div>
+    """
+    st.markdown(footer, unsafe_allow_html=True)
+    
 
 def authenticated_menu():
     # Show a navigation menu for authenticated users
@@ -77,12 +97,13 @@ def unauthenticated_menu():
                  #  use_column_width=True  # Ensures the image uses the full width of the sidebar column
                 )    
         st.write("Please Log in")
+        st.page_link("app.py", label="Log in", icon="🔑")
 
 
 def menu():
     # Determine if a user is logged in or not, then show the correct
     # navigation menu
-    
+    add_footer()
     
 
     if st.session_state.user:

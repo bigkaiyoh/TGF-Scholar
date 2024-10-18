@@ -1,7 +1,7 @@
 import streamlit as st
 from PIL import Image
 from modules.modules import run_assistant, convert_image_to_text, get_secret
-from modules.menu import menu
+from modules.menu import menu, add_footer
 from utils.vocabvan import vocabvan_interface
 import json
 from auth.login_manager import login_user, login_organization, render_login_form, render_org_login_form
@@ -142,6 +142,7 @@ def main():
     
     # Organization Dashboard
     if 'organization' in st.session_state and st.session_state.organization:
+        add_footer()
         org = st.session_state.organization
     
         # Decide which dashboard to show based on the 'full_dashboard' setting
