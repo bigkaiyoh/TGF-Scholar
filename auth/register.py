@@ -1,8 +1,9 @@
 import streamlit as st
 from setup.firebase_setup import db
 import bcrypt
-from datetime import datetime, time
+from datetime import datetime
 import pytz
+import time
 
 def register_user():
     st.title("Register for TGF-Scholar")
