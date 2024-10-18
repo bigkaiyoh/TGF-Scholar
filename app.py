@@ -4,7 +4,8 @@ from modules.modules import run_assistant, convert_image_to_text, get_secret
 from modules.menu import menu
 from vocabvan import vocabvan_interface
 import json
-from auth import register_user, login_user, login_organization
+from auth.login_manager import login_user, login_organization, render_login_form, render_org_login_form
+from auth.register import register_user
 from extra_pages.organization_dashboard import show_org_dashboard, full_org_dashboard
 from firebase_setup import db
 from streamlit_option_menu import option_menu
@@ -210,70 +211,34 @@ def main():
             st.markdown("<div class='auth-form'>", unsafe_allow_html=True)
 
             if choice == "Register":
-                with st.form("register_form"):
-                    st.subheader("Create an Account")
-                    user_id = st.text_input("User ID", placeholder="Enter a unique user ID")
-                    email = st.text_input("Email", placeholder="Enter your email")
-                    password = st.text_input("Password", type="password", placeholder="Enter a strong password")
-                    university = st.text_input("University you're applying to", placeholder="Enter the university you're applying to")
-                    program = st.text_input("Program you're applying to", placeholder="Enter the program you're applying to")
-                    org_code = st.text_input("Organization Code", placeholder="Enter your organization code")
-                    # Timezone selection
-                    timezones = pytz.all_timezones
-                    selected_timezone = st.selectbox("Select Your Timezone", timezones)
-
-                    submit_button = st.form_submit_button("Register", use_container_width=True)
-
-                    if submit_button:
-                        if user_id and email and password and university and program and org_code and selected_timezone:
-                            user_data, message = register_user(user_id, email, password, university, program, org_code, selected_timezone)
-                            if user_data:
-                                st.success(message)
-                                st.session_state.user = user_data
-                                st.rerun()
-                            else:
-                                st.error(message)
-                        else:
-                            st.warning("Please fill in all fields.")
+                register_user()
 
             elif choice == "Login":
-                with st.form("login_form"):
-                    st.subheader("Login to Your Account")
-                    user_id = st.text_input("User ID", placeholder="Enter your user ID")
-                    password = st.text_input("Password", type="password", placeholder="Enter your password")
-                    submit_button = st.form_submit_button("Login", use_container_width=True)
-
-                    if submit_button:
-                        if user_id and password:
-                            user, message = login_user(user_id, password)
-                            if user:
-                                st.success(message)
-                                st.session_state.user = user
-                                st.rerun()
-                            else:
-                                st.error(message)
+                user_id, password, submit_button = render_login_form()
+                if submit_button:
+                    if user_id and password:
+                        user, message = login_user(user_id, password)
+                        if user:
+                            st.success(message)
+                            st.session_state.user = user
+                            st.rerun()
                         else:
-                            st.warning("Please enter both user ID and password.")
+                            st.error(message)
+                    else:
+                        st.warning("Please enter both user ID and password.")
 
-                # Organization Login
-                st.markdown("<hr>", unsafe_allow_html=True)
-                st.subheader("Organization Login")
-                with st.form("org_login_form"):
-                    org_code = st.text_input("Organization Code", placeholder="Enter your organization code")
-                    org_password = st.text_input("Password", type="password", placeholder="Enter your organization password")
-                    org_submit_button = st.form_submit_button("Login as Organization", use_container_width=True)
-
-                    if org_submit_button:
-                        if org_code and org_password:
-                            org, message = login_organization(org_code, org_password)
-                            if org:
-                                st.success(message)
-                                st.session_state.organization = org
-                                st.rerun()
-                            else:
-                                st.error(message)
+                org_code, org_password, org_submit_button = render_org_login_form()
+                if org_submit_button:
+                    if org_code and org_password:
+                        org, message = login_organization(org_code, org_password)
+                        if org:
+                            st.success(message)
+                            st.session_state.organization = org
+                            st.rerun()
                         else:
-                            st.warning("Please enter both organization code and password.")
+                            st.error(message)
+                    else:
+                        st.warning("Please enter both organization code and password.")
 
             st.markdown("</div>", unsafe_allow_html=True)
 

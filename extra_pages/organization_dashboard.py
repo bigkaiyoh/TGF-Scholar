@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from firebase_setup import db
 import pytz
-from auth import logout_org
+from auth.login_manager import logout_org
 from firebase_admin import firestore
 
 if 'organization' not in st.session_state:
