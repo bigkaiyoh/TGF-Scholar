@@ -31,9 +31,9 @@ def authenticated_menu():
                  #  use_column_width=True  # Ensures the image uses the full width of the sidebar column
                 )     
         st.write(f"Welcome back, {user['id']}!")
-        st.write(f"University: {uni_name}")
-        st.write(f"Program: {program_name}")
-        st.write(f"Organization: {org_name}")  
+        st.write(f"志望校: {uni_name}")
+        st.write(f"プログラム: {program_name}")
+        st.write(f"在籍機関: {org_name}")  
 
         if user['status'] == 'Active':
             st.write(f"Days left: {user['days_left']}")
@@ -42,9 +42,9 @@ def authenticated_menu():
 
         st.divider()
 
-        st.page_link("app.py", label="Home", icon="🏠")
-        st.page_link("pages/Settings.py", label="Settings", icon="⚙️")
-        if st.button("Logout"):
+        st.page_link("app.py", label="TGF-Scholar", icon="🏠")
+        st.page_link("pages/Settings.py", label="設定", icon="⚙️")
+        if st.button("ログアウト"):
             logout_user()
             st.rerun()
 
