@@ -102,6 +102,7 @@ def register_user():
             if st.button("登録し直す"):
                 del st.session_state.user_inputs
                 st.session_state.step = 1
+                st.rerun()
 
 
 def register_user_in_firestore(user_id, email, password, university, program, org_code, user_timezone):
