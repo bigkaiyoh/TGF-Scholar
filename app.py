@@ -6,6 +6,7 @@ from utils.vocabvan import vocabvan_interface
 import json
 from auth.login_manager import login_user, login_organization, render_login_form, render_org_login_form
 from auth.register import register_user
+from auth.forgot_password import render_forgot_password_form
 from extra_pages.org_dashboard import show_org_dashboard
 from extra_pages.full_dashboard import full_org_dashboard
 from setup.firebase_setup import db
@@ -237,7 +238,11 @@ def main():
                 
                 with user_tab:
                     user_id, password, submit_button = render_login_form()
-                    if submit_button:
+                    forgot_password = st.checkbox("パスワードをお忘れですか？")
+
+                    if forgot_password:
+                        render_forgot_password_form()
+                    elif submit_button:
                         if user_id and password:
                             user, message = login_user(user_id, password)
                             if user:
@@ -247,8 +252,8 @@ def main():
                             else:
                                 st.error(message)
                         else:
-                            st.warning("Please enter both user ID and password.")
-
+                            st.warning("ユーザーIDとパスワードを入力してください。")
+                            
                 with org_tab:
                     org_code, org_password, org_submit_button = render_org_login_form()
                     if org_submit_button:

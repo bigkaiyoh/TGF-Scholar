@@ -6,6 +6,26 @@ from setup.firebase_setup import db
 if 'user' not in st.session_state:
     st.session_state.user = None
 
+def add_footer():
+    footer = """
+    <style>
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: transparent;
+            color: gray;
+            text-align: center;
+            padding: 10px;
+        }
+    </style>
+    <div class="footer">
+        <p>Powered by <a href="https://nuginy.com" target="_blank" style="color:#0097B2; text-decoration:none;">Nuginy</a></p>
+    </div>
+    """
+    st.markdown(footer, unsafe_allow_html=True)
+
 def get_org_name(org_code):
     try:
         org_ref = db.collection('organizations').document(org_code).get()
@@ -32,25 +52,6 @@ def check_sartre_enabled(org_code):
         st.error(f"Error retrieving Sartre field: {e}")
         return False
     
-def add_footer():
-    footer = """
-    <style>
-        .footer {
-            position: fixed;
-            left: 0;
-            bottom: 0;
-            width: 100%;
-            background-color: transparent;
-            color: black;
-            text-align: center;
-            padding: 10px;
-        }
-    </style>
-    <div class="footer">
-        <p>Powered by <a href="https://nuginy.com" target="_blank" style="color:#0097B2; text-decoration:none;">Nuginy</a></p>
-    </div>
-    """
-    st.markdown(footer, unsafe_allow_html=True)
     
 
 def authenticated_menu():
