@@ -15,10 +15,9 @@ def register_user():
     if 'step' not in st.session_state:
         st.session_state.step = 1
 
-    container = st.container(border=True)
 
     if st.session_state.step == 1:
-        with container:
+        with st.container(border=True):
             st.subheader("Step 1: Enter User Information")
             user_id = st.text_input("Enter User ID:")
             email = st.text_input("Enter Email:")
@@ -39,7 +38,7 @@ def register_user():
                     st.warning("Please fill in all fields")
 
     if st.session_state.step == 2:
-        with container:
+        with st.container(border=True):
             st.subheader("Step 2: Enter Organization Information")
             org_code = st.text_input("Enter Organization Code:")
             if org_code:
@@ -73,7 +72,7 @@ def register_user():
                     st.error("Invalid Organization Code")
 
     if st.session_state.step == 3:
-        with container:
+        with st.container(border=True):
             st.subheader("Step 3: Confirm Your Information")
             st.write("**User ID**: ", st.session_state.user_inputs.get('user_id'))
             st.write("**Email**: ", st.session_state.user_inputs.get('email'))
