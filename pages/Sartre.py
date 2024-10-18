@@ -21,6 +21,10 @@ def chat_with_sartre():
     </p>
     """, unsafe_allow_html=True)
 
+    if st.session_state.user is None:
+        st.warning("サルトルの部屋にアクセスするにはログインしてください。")
+        return
+
 
     # ---------- APP BEGINS --------------
     user_input = st.chat_input("受験や進路に関する悩みを相談してください")
