@@ -21,31 +21,28 @@ client = OpenAI(api_key=api)
 
 
 
-def run_assistant(assistant_id, txt, return_content=False, display_chat=True):
-    # if 'client' not in st.session_state:
+def run_assistant(assistant_id, txt, return_content=False, display_chat=True, user_name="user", assistant_name="assistant"):
+    # Initialize OpenAI client and set assistant if not already initialized
     st.session_state.client = OpenAI(api_key=api)
-
-    #retrieve the assistant
     st.session_state.assistant = st.session_state.client.beta.assistants.retrieve(assistant_id)
-    #Create a thread 
     st.session_state.thread = st.session_state.client.beta.threads.create()
-    content=""
-    
+    content = ""
+
     if txt:
-        #Add a Message to a Thread
+        # Add a message to the thread from the user
         message = st.session_state.client.beta.threads.messages.create(
-            thread_id = st.session_state.thread.id,
-            role = "user",
-            content = txt
+            thread_id=st.session_state.thread.id,
+            role="user",
+            content=txt
         )
 
-        #Run the Assistant
+        # Run the assistant
         run = st.session_state.client.beta.threads.runs.create(
-                thread_id=st.session_state.thread.id,
-                assistant_id=st.session_state.assistant.id
+            thread_id=st.session_state.thread.id,
+            assistant_id=st.session_state.assistant.id
         )
 
-        # Spinner for ongoing process
+        # Spinner for the ongoing process
         with st.spinner('One moment...'):
             while True:
                 # Retrieve the run status
@@ -54,26 +51,32 @@ def run_assistant(assistant_id, txt, return_content=False, display_chat=True):
                     run_id=run.id
                 )
 
-                # If run is completed, process messages
+                # If completed, process the messages
                 if run_status.status == 'completed':
                     messages = st.session_state.client.beta.threads.messages.list(
                         thread_id=st.session_state.thread.id
                     )
 
-                    # Loop through messages and print content based on role
+                    # Loop through messages and display based on the role
                     for msg in reversed(messages.data):
                         role = msg.role
                         content = msg.content[0].text.value
-                        
-                        # Use st.chat_message to display the message based on the role
+
+                        # Use st.chat_message to display the message with the correct name
                         if display_chat:
-                            with st.chat_message(role):
-                                st.write(content)
+                            if role == "user":
+                                with st.chat_message(name=user_name):  # Custom user name
+                                    st.write(content)
+                            else:
+                                with st.chat_message(name=assistant_name):  # Custom assistant name
+                                    st.write(content)
                     break
-                # Wait for a short time before checking the status again
                 time.sleep(1)
+
+    # Return content if requested
     if return_content:
         return content
+
     
 
 # ------------------ transcribe with GPT 4 vision -------------------------

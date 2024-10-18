@@ -17,6 +17,21 @@ def get_org_name(org_code):
     except Exception as e:
         st.error(f"Error retrieving organization name: {e}")
         return 'Error occurred'
+    
+def check_sartre_enabled(org_code):
+    """Check if Sartre is enabled for the user's organization."""
+    try:
+        org_ref = db.collection('organizations').document(org_code).get()
+        if org_ref.exists:
+            org_data = org_ref.to_dict()
+            return org_data.get('sartre', False)  # Default to False if Sartre field doesn't exist
+        else:
+            st.error("Organization not found")
+            return False
+    except Exception as e:
+        st.error(f"Error retrieving Sartre field: {e}")
+        return False
+    
 
 def authenticated_menu():
     # Show a navigation menu for authenticated users
@@ -44,6 +59,11 @@ def authenticated_menu():
 
         st.page_link("app.py", label="TGF-Scholar", icon="🏠")
         st.page_link("pages/Settings.py", label="設定", icon="⚙️")
+        
+        # Check for Friedrich Sartre Option
+        if check_sartre_enabled(user['org_code']):
+            st.page_link("pages/Sartre.py", label="自分との対話", icon="🧠")
+
         if st.button("ログアウト"):
             logout_user()
             st.rerun()
