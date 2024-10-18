@@ -13,15 +13,14 @@ def fetch_submission_data(users_data):
     """Fetch submission data for users."""
     submissions = []
     for user in users_data:
-        user_id = user['User ID']
+        user_id = user['id']  # Use document ID which represents 'id'
         try:
             submission_ref = db.collection('users').document(user_id).collection('submissions').stream()
             for submission in submission_ref:
                 sub_data = submission.to_dict()
-                # Ensure 'submit_time' exists, otherwise skip the submission
                 if sub_data.get('submit_time'):
                     sub_data.update({
-                        'user_id': user_id,
+                        'user_id': user_id,  # This 'user_id' is the document ID
                         'timestamp': sub_data.get('submit_time'),
                         'date': sub_data.get('submit_time').date()  # Make sure date field exists
                     })
@@ -30,12 +29,12 @@ def fetch_submission_data(users_data):
                     st.warning(f"Missing 'submit_time' for submission by user {user_id}. Skipping.")
         except Exception as e:
             st.error(f"Error fetching submissions for user {user_id}: {str(e)}")
-    
     if submissions:
         return pd.DataFrame(submissions)
     else:
         st.warning("No valid submissions found.")
         return pd.DataFrame()  # Return an empty DataFrame if no valid data
+
 
 
 # Display full metrics (for full dashboard view)
@@ -63,7 +62,7 @@ def display_detailed_user_info(user_data):
     st.subheader("Active Users")
     df = pd.DataFrame(user_data)
     
-    selected_user_id = st.selectbox("Select User ID to View Submission History", df['User ID'].tolist())
+    selected_user_id = st.selectbox("Select User ID to View Submission History", df['id'].tolist())
     
     if selected_user_id:
         st.write(f"Selected User: {selected_user_id}")
