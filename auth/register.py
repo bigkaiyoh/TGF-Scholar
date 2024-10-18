@@ -6,7 +6,7 @@ import pytz
 import time
 
 def register_user():
-    st.title("Register for TGF-Scholar")
+    st.title("TGF-Scholarに登録")
 
     timezones = pytz.all_timezones
 
@@ -16,20 +16,19 @@ def register_user():
     if 'step' not in st.session_state:
         st.session_state.step = 1
 
-
     if st.session_state.step == 1:
         with st.container(border=True):
-            st.subheader("Step 1: Enter User Information")
-            user_id = st.text_input("Enter User ID:")
-            email = st.text_input("Enter Email:")
-            password = st.text_input("Enter Password:", type="password")
+            st.subheader("ステップ 1: ユーザー情報を入力してください")
+            user_id = st.text_input("ユーザーIDを入力:")
+            email = st.text_input("メールアドレスを入力:")
+            password = st.text_input("パスワードを入力:", type="password")
 
-            if st.button("Next"):
+            if st.button("次へ"):
                 if user_id and email and password:
                     # Validate user ID doesn't already exist
                     user_ref = db.collection('users').document(user_id).get()
                     if user_ref.exists:
-                        st.error("User with this ID already exists")
+                        st.error("このIDのユーザーは既に存在します")
                     else:
                         st.session_state.user_inputs['user_id'] = user_id
                         st.session_state.user_inputs['email'] = email
@@ -37,13 +36,13 @@ def register_user():
                         st.session_state.step = 2
                         st.rerun()
                 else:
-                    st.warning("Please fill in all fields")
+                    st.warning("すべてのフィールドに入力してください")
 
     if st.session_state.step == 2:
         with st.container(border=True):
-            st.subheader("Step 2: Enter Organization Information")
-            org_code = st.text_input("Enter Organization Code:", help="Hit enter")
-            
+            st.subheader("ステップ 2: 教育機関情報を入力してください")
+            org_code = st.text_input("教育機関コードを入力:")
+
             if org_code:
                 # Fetch organization details from Firestore
                 org_ref = db.collection('organizations').document(org_code).get()
@@ -52,17 +51,17 @@ def register_user():
                     universities_data = org_data.get("universities", [])
                     university_names = [uni.get("name") for uni in universities_data]
 
-                    university = st.selectbox("Select Your University:", university_names)
+                    university = st.selectbox("大学を選択:", university_names)
 
                     if university:
                         selected_university = next((uni for uni in universities_data if uni.get("name") == university), None)
                         programs = selected_university.get("programs", []) if selected_university else []
 
-                        program = st.selectbox("Select Your Program:", programs)
+                        program = st.selectbox("プログラムを選択:", programs)
 
-                        timezone = st.selectbox("Select Your Timezone:", timezones)
+                        timezone = st.selectbox("タイムゾーンを選択:", timezones)
 
-                        if st.button("Next"):
+                        if st.button("次へ"):
                             if university and program and timezone:
                                 st.session_state.user_inputs['org_code'] = org_code
                                 st.session_state.user_inputs['university'] = university
@@ -71,21 +70,21 @@ def register_user():
                                 st.session_state.step = 3
                                 st.rerun()
                             else:
-                                st.warning("Please fill in all fields")
+                                st.warning("すべてのフィールドに入力してください")
                 else:
-                    st.error("Invalid Organization Code")
+                    st.error("無効な教育機関コードです")
 
     if st.session_state.step == 3:
         with st.container(border=True):
-            st.subheader("Step 3: Confirm Your Information")
-            st.write("**User ID**: ", st.session_state.user_inputs.get('user_id'))
-            st.write("**Email**: ", st.session_state.user_inputs.get('email'))
-            st.write("**Organization Code**: ", st.session_state.user_inputs.get('org_code'))
-            st.write("**University**: ", st.session_state.user_inputs.get('university'))
-            st.write("**Program**: ", st.session_state.user_inputs.get('program'))
-            st.write("**Timezone**: ", st.session_state.user_inputs.get('timezone'))
+            st.subheader("ステップ 3: 情報を確認してください")
+            st.write("**ユーザーID**: ", st.session_state.user_inputs.get('user_id'))
+            st.write("**メールアドレス**: ", st.session_state.user_inputs.get('email'))
+            st.write("**教育機関コード**: ", st.session_state.user_inputs.get('org_code'))
+            st.write("**大学**: ", st.session_state.user_inputs.get('university'))
+            st.write("**プログラム**: ", st.session_state.user_inputs.get('program'))
+            st.write("**タイムゾーン**: ", st.session_state.user_inputs.get('timezone'))
 
-            if st.button("Confirm and Register"):
+            if st.button("確認して登録"):
                 register_user_in_firestore(
                     st.session_state.user_inputs['user_id'],
                     st.session_state.user_inputs['email'],
@@ -95,12 +94,12 @@ def register_user():
                     st.session_state.user_inputs['org_code'],
                     st.session_state.user_inputs['timezone']
                 )
-                st.success("Registration successful!")
+                st.success("登録に成功しました!")
                 time.sleep(2)
                 st.session_state.choice = "Login"
                 st.rerun()
 
-            if st.button("Go Back"):
+            if st.button("登録し直す"):
                 del st.session_state.user_inputs
                 st.session_state.step = 1
 
@@ -129,4 +128,4 @@ def register_user_in_firestore(user_id, email, password, university, program, or
         del st.session_state.step
 
     except Exception as e:
-        st.error(f"Registration failed: {str(e)}")
+        st.error(f"登録に失敗しました: {str(e)}")
