@@ -40,7 +40,7 @@ def apply_custom_css():
 
 # Display header for the organization
 def display_org_header(organization):
-    st.markdown(f"<h1 class='big-font'>Welcome, {organization['org_name']}!</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 class='big-font'>{organization['org_name']}</h1>", unsafe_allow_html=True)
     st.markdown(f"<p><strong>Organization Code:</strong> {organization['org_code']}</p>", unsafe_allow_html=True)
 
 # Fetch user data and update statuses
