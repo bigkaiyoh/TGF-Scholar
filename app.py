@@ -29,8 +29,7 @@ if 'organization' not in st.session_state:
     st.session_state.organization = None
 if 'feedback' not in st.session_state:
     st.session_state.feedback = None
-if 'choice' not in st.session_state:
-    st.session_state.choice = "Login"
+    
 
 #Page Configuration
 fc = Image.open("src/TGF-Scholar-favicon.png")
@@ -202,7 +201,7 @@ def main():
         _, col, _ = st.columns([1, 2, 1])
 
         with col:
-            st.session_state.choice = option_menu(
+            choice = option_menu(
                 menu_title=None,
                 options=["Login", "Register"],
                 icons=["box-arrow-in-right", "person-plus"],
@@ -213,10 +212,10 @@ def main():
 
             st.markdown("<div class='auth-form'>", unsafe_allow_html=True)
 
-            if st.session_state.choice == "Register":
+            if choice == "Register":
                 register_user()
 
-            elif st.session_state.choice == "Login":
+            elif choice == "Login":
                 user_id, password, submit_button = render_login_form()
                 if submit_button:
                     if user_id and password:
