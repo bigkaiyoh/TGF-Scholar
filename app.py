@@ -2,12 +2,13 @@ import streamlit as st
 from PIL import Image
 from modules.modules import run_assistant, convert_image_to_text, get_secret
 from modules.menu import menu
-from vocabvan import vocabvan_interface
+from utils.vocabvan import vocabvan_interface
 import json
 from auth.login_manager import login_user, login_organization, render_login_form, render_org_login_form
 from auth.register import register_user
-from extra_pages.organization_dashboard import show_org_dashboard, full_org_dashboard
-from firebase_setup import db
+from extra_pages.org_dashboard import show_org_dashboard
+from extra_pages.full_dashboard import full_org_dashboard
+from setup.firebase_setup import db
 from streamlit_option_menu import option_menu
 from datetime import datetime
 import pytz

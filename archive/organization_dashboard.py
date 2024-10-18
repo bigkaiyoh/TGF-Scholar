@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
-from firebase_setup import db
+from setup.firebase_setup import db
 import pytz
 from auth.login_manager import logout_org
 from firebase_admin import firestore

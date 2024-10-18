@@ -1,6 +1,6 @@
 import streamlit as st
 import pytz
-from firebase_setup import db
+from setup.firebase_setup import db
 from modules.menu import menu
 
 if 'user' not in st.session_state:

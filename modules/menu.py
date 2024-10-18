@@ -1,6 +1,6 @@
 import streamlit as st
 from auth.login_manager import logout_user
-from firebase_setup import db
+from setup.firebase_setup import db
 
 
 if 'user' not in st.session_state:

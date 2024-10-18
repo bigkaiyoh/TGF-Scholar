@@ -1,7 +1,7 @@
 import streamlit as st
 from firebase_admin import firestore
 import bcrypt
-from firebase_setup import db
+from setup.firebase_setup import db
 from datetime import datetime, timezone as dt_timezone
 import pytz
 

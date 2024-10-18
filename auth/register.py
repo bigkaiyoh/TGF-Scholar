@@ -1,5 +1,5 @@
 import streamlit as st
-from firebase_setup import db
+from setup.firebase_setup import db
 import bcrypt
 from datetime import datetime
 import pytz
