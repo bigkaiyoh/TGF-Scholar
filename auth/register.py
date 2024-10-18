@@ -97,7 +97,7 @@ def register_user():
                 )
                 st.success("Registration successful!")
                 time.sleep(2)
-                st.session_State.choice = "Login"
+                st.session_state.choice = "Login"
                 st.rerun()
 
             if st.button("Go Back"):
