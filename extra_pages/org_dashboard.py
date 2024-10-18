@@ -1,5 +1,5 @@
 import streamlit as st
-from dashboard_common import apply_custom_css, display_org_header, get_user_data, display_active_users_table
+from .dashboard_common import apply_custom_css, display_org_header, get_user_data, display_active_users_table
 from auth.login_manager import logout_org
 from setup.firebase_setup import db
 from auth.login_manager import logout_org

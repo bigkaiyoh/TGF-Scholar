@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import pytz
 from firebase_admin import firestore
-from dashboard_common import apply_custom_css, display_org_header, get_user_data, display_active_users_table
+from .dashboard_common import apply_custom_css, display_org_header, get_user_data, display_active_users_table
 from auth.login_manager import logout_org
 from datetime import datetime
 from setup.firebase_setup import db
