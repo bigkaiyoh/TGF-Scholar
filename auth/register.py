@@ -1,7 +1,7 @@
 import streamlit as st
 from setup.firebase_setup import db
 import bcrypt
-from datetime import datetime
+from datetime import datetime, time
 import pytz
 
 def register_user():
@@ -34,6 +34,7 @@ def register_user():
                         st.session_state.user_inputs['email'] = email
                         st.session_state.user_inputs['password'] = password
                         st.session_state.step = 2
+                        st.rerun()
                 else:
                     st.warning("Please fill in all fields")
 
@@ -66,6 +67,7 @@ def register_user():
                                 st.session_state.user_inputs['program'] = program
                                 st.session_state.user_inputs['timezone'] = timezone
                                 st.session_state.step = 3
+                                st.rerun()
                             else:
                                 st.warning("Please fill in all fields")
                 else:
@@ -92,9 +94,13 @@ def register_user():
                     st.session_state.user_inputs['timezone']
                 )
                 st.success("Registration successful!")
+                time.sleep(2)
+                st.session_State.choice = "Login"
+                st.rerun()
 
             if st.button("Go Back"):
-                st.session_state.step = 2
+                del st.session_state.user_inputs
+                st.session_state.step = 1
 
 
 def register_user_in_firestore(user_id, email, password, university, program, org_code, user_timezone):
