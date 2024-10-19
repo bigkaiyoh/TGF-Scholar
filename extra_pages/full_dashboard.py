@@ -33,20 +33,18 @@ def fetch_submission_data(org_code):
                 })
                 submissions.append(sub_data)
             else:
-                # Skip submissions without 'submit_time'
-                pass  # No need to warn or error
+                pass  # Skip submissions without 'submit_time'
 
     except Exception as e:
         error_message = str(e)
         if 'indexes?create_composite' in error_message:
-            # This error occurs when the required index is missing
-            # Handle it silently by returning an empty DataFrame
-            # Optionally, log the error for debugging
+            # Handle the missing index error by providing a more detailed message
+            st.error(f"必要なFirestoreインデックスがありません。リンクをクリックして、インデックスを作成してください: {error_message}")
             print(f"Index not found for query in fetch_submission_data: {error_message}")
             return pd.DataFrame()
         else:
             # For other exceptions, display an error message
-            st.error("エラーが発生しました。Nuginyサポートにお問い合わせください。")
+            st.error(f"エラーが発生しました。Nuginyサポートにお問い合わせください: {error_message}")
             print(f"Error in fetch_submission_data: {error_message}")
             return pd.DataFrame()
 
@@ -55,6 +53,7 @@ def fetch_submission_data(org_code):
     else:
         # No valid submissions after processing
         return pd.DataFrame()
+
 
 
 
