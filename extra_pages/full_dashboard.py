@@ -9,29 +9,45 @@ from setup.firebase_setup import db
 
 # Fetch submission data using a collection group query
 def fetch_submission_data(org_code):
-    """指定された組織のすべてのユーザーから提出データを取得します。"""
+    """Fetch submission data for all users in an organization."""
     submissions = []
     try:
         # Query all submissions where 'org_code' matches
         submissions_ref = db.collection_group('submissions').where('org_code', '==', org_code)
-        for submission in submissions_ref.stream():
+        submissions_list = list(submissions_ref.stream())
+
+        if not submissions_list:
+            # No submissions found for the organization
+            return pd.DataFrame()  # Return an empty DataFrame without error
+
+        for submission in submissions_list:
             sub_data = submission.to_dict()
-            if sub_data.get('submit_time'):
+            submit_time = sub_data.get('submit_time')
+            if submit_time and isinstance(submit_time, datetime):
+                timezone_str = sub_data.get('timezone', 'UTC')
+                timezone = pytz.timezone(timezone_str)
                 sub_data.update({
                     'user_id': submission.reference.parent.parent.id,  # Get user ID from parent document
-                    'timestamp': sub_data.get('submit_time'),
-                    'date': sub_data.get('submit_time').astimezone(pytz.timezone(sub_data.get('timezone', 'UTC'))).date()
+                    'timestamp': submit_time,
+                    'date': submit_time.astimezone(timezone).date()
                 })
                 submissions.append(sub_data)
             else:
-                st.warning(f"提出に 'submit_time' がありません。スキップします。")
+                # Skip submissions without 'submit_time'
+                pass  # No need to warn or error
+
     except Exception as e:
-        st.error(f"提出を取得中にエラーが発生しました: {str(e)}")
+        # Handle unexpected exceptions
+        st.error("エラーが発生しました。サポートにお問い合わせください。")
+        print(f"Error in fetch_submission_data: {str(e)}")
+        return pd.DataFrame()
+
     if submissions:
         return pd.DataFrame(submissions)
     else:
-        st.warning("有効な提出がまだありません。")
-        return pd.DataFrame()  # Return an empty DataFrame if no valid data
+        # No valid submissions after processing
+        return pd.DataFrame()
+
 
 # Display full metrics (for full dashboard view)
 def display_full_metrics(registrations_this_month, active_users, todays_submissions, todays_users):
@@ -97,7 +113,7 @@ def display_submission_history(user_id):
         else:
             st.info("このユーザーの提出は見つかりませんでした。")
     except Exception as e:
-        st.error(f"提出履歴の取得中にエラーが発生しました: {str(e)}")
+        st.error(f"提出履歴の取得中にエラーが発生しました。")
 
 def full_org_dashboard(organization):
     apply_custom_css()
