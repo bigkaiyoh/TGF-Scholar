@@ -4,6 +4,7 @@ setup/temp_org_setup.py
 config/firebase.json
 archive/
 functions/
+data/
 
 # OS-specific files
 .DS_Store
@@ -15,3 +16,5 @@ __pycache__/
 
 node_modules/
 .env
+
+

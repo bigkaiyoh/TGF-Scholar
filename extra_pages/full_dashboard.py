@@ -37,16 +37,25 @@ def fetch_submission_data(org_code):
                 pass  # No need to warn or error
 
     except Exception as e:
-        # Handle unexpected exceptions
-        st.error("エラーが発生しました。サポートにお問い合わせください。")
-        print(f"Error in fetch_submission_data: {str(e)}")
-        return pd.DataFrame()
+        error_message = str(e)
+        if 'indexes?create_composite' in error_message:
+            # This error occurs when the required index is missing
+            # Handle it silently by returning an empty DataFrame
+            # Optionally, log the error for debugging
+            print(f"Index not found for query in fetch_submission_data: {error_message}")
+            return pd.DataFrame()
+        else:
+            # For other exceptions, display an error message
+            st.error("エラーが発生しました。サポートにお問い合わせください。")
+            print(f"Error in fetch_submission_data: {error_message}")
+            return pd.DataFrame()
 
     if submissions:
         return pd.DataFrame(submissions)
     else:
         # No valid submissions after processing
         return pd.DataFrame()
+
 
 
 # Display full metrics (for full dashboard view)
