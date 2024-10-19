@@ -130,9 +130,9 @@ def register_user():
     if st.session_state.step == 4:
         st.balloons()
         # Show only the login button on a clean screen
-        st.success("登録に成功しました！下のボタンを押してログインしてください")
-        if st.button("ログインに進む"):
-            st.page_link("app.py", label="Log in", icon="🔑")
+        st.success("登録に成功しました！ログインしてください")
+        if st.page_link("app.py", label="Log in", icon="🔑"):
+            st.session_state.clear()
             
 
 
