@@ -4,6 +4,7 @@ import bcrypt
 from datetime import datetime
 import pytz
 import time
+from auth.login_manager import login_user
 
 def register_user():
     timezones = pytz.all_timezones
@@ -129,10 +130,23 @@ def register_user():
 
     if st.session_state.step == 4:
         st.balloons()
-        # Show only the login button on a clean screen
-        st.success("登録に成功しました！ログインしてください")
-        if st.page_link("app.py", label="Log in", icon="🔑"):
-            st.session_state.clear()
+
+        if st.button("ログイン"):
+            # Retrieve the stored user info from registration
+            user_id = st.session_state.user_inputs.get('user_id')
+            password = st.session_state.user_inputs.get('password')
+            
+            user, message = login_user(user_id, password)
+        
+            if user:
+                st.success(message)
+                st.session_state.user = user  # Store the logged-in user in session state
+                
+                del st.session_state.user_inputs
+                st.session_state.step = 1
+                st.rerun()  # Reload the page after successful login
+            else:
+                st.error(message)
             
 
 
