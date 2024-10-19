@@ -52,7 +52,8 @@ def login_user(user_id, password):
                 "id": user_id,
                 "email": user_data['email'],
                 "university": user_data['university'],
-                "program": user_data['program'],
+                "faculty": user_data['faculty'],  # Replaced 'program' with 'faculty'
+                "department": user_data.get('department', ""),  # Added 'department'
                 "org_code": user_data['org_code'],
                 'timezone': user_data['timezone'],
                 "status": status,
