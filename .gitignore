@@ -1,5 +1,6 @@
 secrets.toml
 setup/service_account_key.json
+setup/temp_org_setup.py
 config/firebase.json
 archive/
 functions/
@@ -14,4 +15,3 @@ __pycache__/
 
 node_modules/
 .env
-setup/service_account_key.json

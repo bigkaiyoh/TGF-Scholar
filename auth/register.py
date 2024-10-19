@@ -6,8 +6,6 @@ import pytz
 import time
 
 def register_user():
-    # st.title("TGF-Scholarに登録")
-
     timezones = pytz.all_timezones
 
     # Initialize session state to store user inputs and progress
@@ -55,22 +53,33 @@ def register_user():
 
                     if university:
                         selected_university = next((uni for uni in universities_data if uni.get("name") == university), None)
-                        programs = selected_university.get("programs", []) if selected_university else []
+                        faculties = selected_university.get("faculties", []) if selected_university else []
 
-                        program = st.selectbox("プログラムを選択:", programs)
+                        faculty_names = [fac.get("name") for fac in faculties]
+                        faculty = st.selectbox("学部を選択:", faculty_names)
 
-                        timezone = st.selectbox("タイムゾーンを選択:", timezones)
+                        if faculty:
+                            selected_faculty = next((fac for fac in faculties if fac.get("name") == faculty), None)
+                            departments = selected_faculty.get("departments", []) if selected_faculty else []
 
-                        if st.button("次へ"):
-                            if university and program and timezone:
-                                st.session_state.user_inputs['org_code'] = org_code
-                                st.session_state.user_inputs['university'] = university
-                                st.session_state.user_inputs['program'] = program
-                                st.session_state.user_inputs['timezone'] = timezone
-                                st.session_state.step = 3
-                                st.rerun()
+                            if departments:
+                                department = st.selectbox("学科を選択:", departments)
                             else:
-                                st.warning("すべてのフィールドに入力してください")
+                                department = None
+
+                            timezone = st.selectbox("タイムゾーンを選択:", timezones)
+
+                            if st.button("次へ"):
+                                if university and faculty and timezone:
+                                    st.session_state.user_inputs['org_code'] = org_code
+                                    st.session_state.user_inputs['university'] = university
+                                    st.session_state.user_inputs['faculty'] = faculty
+                                    st.session_state.user_inputs['department'] = department
+                                    st.session_state.user_inputs['timezone'] = timezone
+                                    st.session_state.step = 3
+                                    st.rerun()
+                                else:
+                                    st.warning("すべてのフィールドに入力してください")
                 else:
                     st.error("無効な教育機関コードです")
 
@@ -81,7 +90,8 @@ def register_user():
             st.write("**メールアドレス**: ", st.session_state.user_inputs.get('email'))
             st.write("**教育機関コード**: ", st.session_state.user_inputs.get('org_code'))
             st.write("**大学**: ", st.session_state.user_inputs.get('university'))
-            st.write("**プログラム**: ", st.session_state.user_inputs.get('program'))
+            st.write("**学部**: ", st.session_state.user_inputs.get('faculty'))
+            st.write("**学科**: ", st.session_state.user_inputs.get('department'))
             st.write("**タイムゾーン**: ", st.session_state.user_inputs.get('timezone'))
 
             if st.button("確認して登録"):
@@ -90,14 +100,16 @@ def register_user():
                     st.session_state.user_inputs['email'],
                     st.session_state.user_inputs['password'],
                     st.session_state.user_inputs['university'],
-                    st.session_state.user_inputs['program'],
+                    st.session_state.user_inputs['faculty'],
+                    st.session_state.user_inputs['department'],
                     st.session_state.user_inputs['org_code'],
                     st.session_state.user_inputs['timezone']
                 )
                 st.success("登録に成功しました!タブを切り替えてログインをしてください")
-                # time.sleep(2)
-                # st.session_state.choice = "Login"
-                # st.rerun()
+                # Optionally reset session state
+                del st.session_state.user_inputs
+                del st.session_state.step
+                st.rerun()
 
             if st.button("登録し直す"):
                 del st.session_state.user_inputs
@@ -105,7 +117,7 @@ def register_user():
                 st.rerun()
 
 
-def register_user_in_firestore(user_id, email, password, university, program, org_code, user_timezone):
+def register_user_in_firestore(user_id, email, password, university, faculty, department, org_code, user_timezone):
     try:
         hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
@@ -117,16 +129,13 @@ def register_user_in_firestore(user_id, email, password, university, program, or
             'email': email,
             'password': hashed_password,
             'university': university,
-            'program': program,
+            'faculty': faculty,
+            'department': department,
             'org_code': org_code,
             'registerAt': register_at,
             'timezone': user_timezone,
             'status': 'Active'
         })
-
-        # Optionally reset session state
-        del st.session_state.user_inputs
-        del st.session_state.step
 
     except Exception as e:
         st.error(f"登録に失敗しました: {str(e)}")
