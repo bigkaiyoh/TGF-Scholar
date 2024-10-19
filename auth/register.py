@@ -5,6 +5,7 @@ from datetime import datetime
 import pytz
 import time
 from auth.login_manager import login_user
+from firebase_admin import firestore
 
 def register_user():
     timezones = pytz.all_timezones
@@ -167,7 +168,8 @@ def register_user_in_firestore(user_id, email, password, university, faculty, de
             'org_code': org_code,
             'registerAt': register_at,
             'timezone': user_timezone,
-            'status': 'Active'
+            'status': 'Active',
+            'createTime': firestore.SERVER_TIMESTAMP  # Firestore-managed creation time
         })
 
     except Exception as e:
