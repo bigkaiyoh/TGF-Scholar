@@ -46,7 +46,7 @@ def fetch_submission_data(org_code):
             return pd.DataFrame()
         else:
             # For other exceptions, display an error message
-            st.error("エラーが発生しました。サポートにお問い合わせください。")
+            st.error("エラーが発生しました。Nuginyサポートにお問い合わせください。")
             print(f"Error in fetch_submission_data: {error_message}")
             return pd.DataFrame()
 
