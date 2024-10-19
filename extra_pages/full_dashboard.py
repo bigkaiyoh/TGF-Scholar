@@ -38,14 +38,12 @@ def fetch_submission_data(org_code):
     except Exception as e:
         error_message = str(e)
         if 'indexes?create_composite' in error_message:
-            # Handle the missing index error by providing a more detailed message
-            st.error(f"必要なFirestoreインデックスがありません。リンクをクリックして、インデックスを作成してください: {error_message}")
-            print(f"Index not found for query in fetch_submission_data: {error_message}")
+            # Provide a user-friendly message about missing indexes
+            st.error("提出データを取得するために必要な設定が完了していません。Nuginyサポートにお問い合わせください。")
             return pd.DataFrame()
         else:
-            # For other exceptions, display an error message
-            st.error(f"エラーが発生しました。Nuginyサポートにお問い合わせください: {error_message}")
-            print(f"Error in fetch_submission_data: {error_message}")
+            # For other exceptions, display a general error message
+            st.error("エラーが発生しました。Nuginyサポートにお問い合わせください。")
             return pd.DataFrame()
 
     if submissions:
