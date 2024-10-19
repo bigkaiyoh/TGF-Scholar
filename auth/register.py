@@ -95,6 +95,18 @@ def register_user():
             st.write("**タイムゾーン**: ", st.session_state.user_inputs.get('timezone'))
 
             if st.button("確認して登録"):
+                # Add progress bar to simulate registration process
+                progress_text = "登録処理中...お待ちください。"
+                my_bar = st.progress(0, text=progress_text)
+
+                for percent_complete in range(100):
+                    time.sleep(0.01)  # Simulate work being done
+                    my_bar.progress(percent_complete + 1, text=progress_text)
+
+                time.sleep(1)  # Pause briefly before continuing
+                my_bar.empty()
+
+                # Register user in Firestore
                 register_user_in_firestore(
                     st.session_state.user_inputs['user_id'],
                     st.session_state.user_inputs['email'],
@@ -105,15 +117,23 @@ def register_user():
                     st.session_state.user_inputs['org_code'],
                     st.session_state.user_inputs['timezone']
                 )
-                st.success("登録に成功しました!タブを切り替えてログインをしてください")
-                # Optionally reset session state
-                del st.session_state.user_inputs
-                del st.session_state.step
+                
+                # Move to step 4 to show only login button
+                st.session_state.step = 4
+                st.rerun()
 
             if st.button("登録し直す"):
                 del st.session_state.user_inputs
                 st.session_state.step = 1
                 st.rerun()
+
+    if st.session_state.step == 4:
+        st.balloons()
+        # Show only the login button on a clean screen
+        st.success("登録に成功しました！下のボタンを押してログインしてください")
+        if st.button("ログインに進む"):
+            st.page_link("app.py", label="Log in", icon="🔑")
+            
 
 
 def register_user_in_firestore(user_id, email, password, university, faculty, department, org_code, user_timezone):
