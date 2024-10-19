@@ -58,7 +58,8 @@ def authenticated_menu():
     # Show a navigation menu for authenticated users
     user = st.session_state.user
     uni_name = user['university']
-    program_name = user['program']
+    faculty_name = user['faculty']  
+    department_name = user.get('department', "")  # Handle missing department
     org_name = get_org_name(user['org_code'])
 
     with st.sidebar:
@@ -66,10 +67,14 @@ def authenticated_menu():
                  width=190
                  #  use_column_width=True  # Ensures the image uses the full width of the sidebar column
                 )     
+        
         st.write(f"Welcome back, {user['id']}!")
-        st.write(f"志望校: {uni_name}")
-        st.write(f"プログラム: {program_name}")
-        st.write(f"在籍機関: {org_name}")  
+        st.write(f"**志望校**: {uni_name}")
+        st.write(f"**学部**: {faculty_name}")
+        # Conditionally display department if it exists
+        if department_name:
+            st.write(f"**学科**: {department_name}")
+        st.write(f"**所属機関**: {org_name}") 
 
         if user['status'] == 'Active':
             st.write(f"Days left: {user['days_left']}")

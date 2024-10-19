@@ -7,28 +7,26 @@ from auth.login_manager import logout_org
 from datetime import datetime
 from setup.firebase_setup import db
 
-
-
-def fetch_submission_data(users_data):
-    """Fetch submission data for users."""
+# Fetch submission data using a collection group query
+def fetch_submission_data(org_code):
+    """指定された組織のすべてのユーザーから提出データを取得します。"""
     submissions = []
-    for user in users_data:
-        user_id = user['User ID']  # Use document ID which represents 'id'
-        try:
-            submission_ref = db.collection('users').document(user_id).collection('submissions').stream()
-            for submission in submission_ref:
-                sub_data = submission.to_dict()
-                if sub_data.get('submit_time'):
-                    sub_data.update({
-                        'user_id': user_id,  # This 'user_id' is the document ID
-                        'timestamp': sub_data.get('submit_time'),
-                        'date': sub_data.get('submit_time').date()  # Make sure date field exists
-                    })
-                    submissions.append(sub_data)
-                else:
-                    st.warning(f"ユーザー {user_id} の提出に 'submit_time' がありません。スキップします。")
-        except Exception as e:
-            st.error(f"ユーザー {user_id} の提出を取得中にエラーが発生しました: {str(e)}")
+    try:
+        # Query all submissions where 'org_code' matches
+        submissions_ref = db.collection_group('submissions').where('org_code', '==', org_code)
+        for submission in submissions_ref.stream():
+            sub_data = submission.to_dict()
+            if sub_data.get('submit_time'):
+                sub_data.update({
+                    'user_id': submission.reference.parent.parent.id,  # Get user ID from parent document
+                    'timestamp': sub_data.get('submit_time'),
+                    'date': sub_data.get('submit_time').astimezone(pytz.timezone(sub_data.get('timezone', 'UTC'))).date()
+                })
+                submissions.append(sub_data)
+            else:
+                st.warning(f"提出に 'submit_time' がありません。スキップします。")
+    except Exception as e:
+        st.error(f"提出を取得中にエラーが発生しました: {str(e)}")
     if submissions:
         return pd.DataFrame(submissions)
     else:
@@ -59,30 +57,43 @@ def display_submission_history(user_id):
     st.subheader(f"{user_id}の提出履歴")
     
     try:
-        submissions_ref = db.collection('users').document(user_id).collection('submissions')
-        submissions = submissions_ref.order_by('submit_time', direction=firestore.Query.DESCENDING).stream()
+        # Fetch user data for university, faculty, and department
+        user_ref = db.collection('users').document(user_id)
+        user_doc = user_ref.get()
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            university = user_data.get('university', '')
+            faculty = user_data.get('faculty', '')
+            department = user_data.get('department', '')
+        else:
+            university = faculty = department = ''
+        
+        submissions_ref = user_ref.collection('submissions').order_by('submit_time', direction=firestore.Query.DESCENDING)
+        submissions = submissions_ref.stream()
 
-        university = ""
-        program = ""
         submission_data = []
-
         for submission in submissions:
             submission_dict = submission.to_dict()
-            if not university and not program:
-                university = submission_dict.get('university', '')
-                program = submission_dict.get('program', '')
-
             submission_data.append({
                 "提出日時": submission_dict.get('submit_time').strftime('%Y-%m-%d %H:%M:%S') if submission_dict.get('submit_time') else '不明',
                 "提出志望動機書": submission_dict.get('text', '')
             })
 
         st.markdown(f"**大学:** {university}")
-        st.markdown(f"**プログラム:** {program}")
+        st.markdown(f"**学部:** {faculty}")
+        if department:
+            st.markdown(f"**学科:** {department}")
         
         if submission_data:
             df = pd.DataFrame(submission_data)
-            st.dataframe(df.style.set_properties(**{'text-align': 'left', 'white-space': 'pre-wrap'}).set_table_styles([{'selector': 'th', 'props': [('text-align', 'left')]}]), use_container_width=True)
+            st.dataframe(
+                df.style.set_properties(
+                    **{'text-align': 'left', 'white-space': 'pre-wrap'}
+                ).set_table_styles(
+                    [{'selector': 'th', 'props': [('text-align', 'left')]}]
+                ),
+                use_container_width=True
+            )
         else:
             st.info("このユーザーの提出は見つかりませんでした。")
     except Exception as e:
@@ -93,13 +104,16 @@ def full_org_dashboard(organization):
     display_org_header(organization)
 
     user_data, registrations_this_month, active_users = get_user_data(organization['org_code'])
-    submissions_df = fetch_submission_data(user_data)
+    submissions_df = fetch_submission_data(organization['org_code'])
+
+    # Calculate today's date once
+    today = datetime.now(pytz.timezone(organization['timezone'])).date()
 
     if not submissions_df.empty:
         # Ensure 'date' column exists before processing it
         if 'date' in submissions_df.columns:
-            todays_submissions = len(submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()])
-            todays_users = submissions_df[submissions_df['date'] == datetime.now(pytz.timezone(organization['timezone'])).date()]['user_id'].nunique()
+            todays_submissions = len(submissions_df[submissions_df['date'] == today])
+            todays_users = submissions_df[submissions_df['date'] == today]['user_id'].nunique()
         else:
             st.warning("有効な日付のある提出がありません。")
             todays_submissions = 0

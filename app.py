@@ -120,19 +120,33 @@ def display_feedback():
         """, unsafe_allow_html=True)
 
 
-def save_submission(user_id, txt, uni_name, program_name):
+def save_submission(user_id, txt, uni_name, faculty_name, department_name):
+    """Save submission to Firestore with necessary fields for the organization dashboard."""
     try:
         user_ref = db.collection('users').document(user_id)
+        user_data = user_ref.get().to_dict()
+
+        # Fetch 'org_code' and 'timezone' from the user's data
+        org_code = user_data.get('org_code', '')
+        user_timezone = user_data.get('timezone', 'UTC')
+
+        # Use timezone-aware datetime for 'submit_time'
+        submit_time = datetime.now(pytz.timezone(user_timezone))
+
         user_ref.collection('submissions').add({
             'text': txt,
-            'submit_time': datetime.now(),
+            'submit_time': submit_time,
             'university': uni_name,
-            'program': program_name
+            'faculty': faculty_name,
+            'department': department_name if department_name else "",
+            'org_code': org_code,
+            'timezone': user_timezone
         })
         return True
     except Exception as e:
         print(f"Error saving submission: {e}")
         return False
+
 
 def main():
     # Display Title with Favicon and Catchphrase using Streamlit's layout
@@ -156,7 +170,8 @@ def main():
     elif 'user' in st.session_state and st.session_state.user:
         user = st.session_state.user
         uni_name = user['university']
-        program_name = user['program']
+        faculty_name = user['faculty']  # Fetching faculty instead of program
+        department_name = user.get('department', "")  # Handle missing department
 
         menu()
 
@@ -172,8 +187,11 @@ def main():
             vocabvan_interface()
 
         txt = get_input()
-        information = f"University: {uni_name}\nProgram: {program_name}\n\nWriting: {txt}"
-        
+        information = f"University: {uni_name}\nFaculty: {faculty_name}\n"
+        if department_name:  # Only include department in information if it exists
+            information += f"Department: {department_name}\n"
+        information += f"\nWriting: {txt}"
+
         # 提出ボタン
         submit_button = st.button("採点する🚀", type="primary")
 
@@ -186,7 +204,9 @@ def main():
 
                 with st.expander("入力内容", expanded=False):
                     st.write(f"**志望校名**: {uni_name}")
-                    st.write(f"**学部名**: {program_name}")
+                    st.write(f"**学部名**: {faculty_name}")
+                    if department_name:  # Only display department if it exists
+                        st.write(f"**学科名**: {department_name}")
                     st.write("**志望動機書**:")
                     
                     # Use markdown to display the text in a styled box
@@ -202,7 +222,7 @@ def main():
                 st.session_state.feedback = run_assistant(assistant_id=assistant, txt=information, return_content=True, display_chat=False)
                 
                 # Save submission using the dedicated function
-                save_submission(user['id'], txt, uni_name, program_name)
+                save_submission(user['id'], txt, uni_name, faculty_name, department_name)
 
             else:
                 st.error("Your account is inactive. You cannot submit evaluations.")
