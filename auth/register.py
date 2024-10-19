@@ -109,7 +109,6 @@ def register_user():
                 # Optionally reset session state
                 del st.session_state.user_inputs
                 del st.session_state.step
-                st.rerun()
 
             if st.button("登録し直す"):
                 del st.session_state.user_inputs
