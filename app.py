@@ -87,23 +87,24 @@ def get_input():
     txt = st.text_area("こちらに志望動機書を入力してください", height=220, value=st.session_state.txt)
     st.info(f'現在の文字数: {len(txt.split())} 文字')
 
-    uploaded_file = st.file_uploader(
-        "ファイルをアップロードしてください",
-        type=["pdf", "jpg", "jpeg", "png"],
-        help="手書きの志望動機書やPDFファイルを評価するためにご利用ください"
-    )
+    # ---------------- Disable File Upload until it is fully available --------------------
+    # uploaded_file = st.file_uploader(
+    #     "ファイルをアップロードしてください",
+    #     type=["pdf", "jpg", "jpeg", "png"],
+    #     help="手書きの志望動機書やPDFファイルを評価するためにご利用ください"
+    # )
     
-    if uploaded_file is not None and not st.session_state.transcription_done:
-        # Transcribe the uploaded file
-        with st.spinner("Reading..."):
-            try:
-                result = convert_image_to_text(uploaded_file)
-                st.session_state.txt = result  # Update session state
-                st.session_state.transcription_done = True
-                st.success("Transcription completed successfully!")
-                st.rerun()
-            except Exception as e:
-                st.error(f"An error occurred: {str(e)}")
+    # if uploaded_file is not None and not st.session_state.transcription_done:
+    #     # Transcribe the uploaded file
+    #     with st.spinner("Reading..."):
+    #         try:
+    #             result = convert_image_to_text(uploaded_file)
+    #             st.session_state.txt = result  # Update session state
+    #             st.session_state.transcription_done = True
+    #             st.success("Transcription completed successfully!")
+    #             st.rerun()
+    #         except Exception as e:
+    #             st.error(f"An error occurred: {str(e)}")
 
     return txt
 
