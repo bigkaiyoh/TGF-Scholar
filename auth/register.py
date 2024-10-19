@@ -16,7 +16,7 @@ def register_user():
 
     if st.session_state.step == 1:
         with st.container(border=True):
-            st.subheader("登録するユーザー情報を設定してください")
+            st.subheader("ユーザー情報を設定してください")
             user_id = st.text_input("ユーザーID:")
             email = st.text_input("メールアドレス:")
             password = st.text_input("パスワード:", type="password")
