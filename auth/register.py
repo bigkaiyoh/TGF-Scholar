@@ -160,6 +160,7 @@ def register_user_in_firestore(user_id, email, password, university, faculty, de
 
         # Create a new user document in Firestore
         db.collection('users').document(user_id).set({
+            'id': user_id, # for RPA usage
             'email': email,
             'password': hashed_password,
             'university': university,

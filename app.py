@@ -141,7 +141,8 @@ def save_submission(user_id, txt, uni_name, faculty_name, department_name):
             'faculty': faculty_name,
             'department': department_name if department_name else "",
             'org_code': org_code,
-            'timezone': user_timezone
+            'timezone': user_timezone,
+            'feedback': st.session_state.feedback
         })
         return True
     except Exception as e:
