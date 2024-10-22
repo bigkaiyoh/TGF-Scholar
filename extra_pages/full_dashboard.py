@@ -98,7 +98,8 @@ def display_submission_history(user_id):
             submission_dict = submission.to_dict()
             submission_data.append({
                 "提出日時": submission_dict.get('submit_time').strftime('%Y-%m-%d %H:%M:%S') if submission_dict.get('submit_time') else '不明',
-                "提出志望動機書": submission_dict.get('text', '')
+                "提出志望動機書": submission_dict.get('text', ''),
+                "添削内容": submission_dict.get('feedback', '添削なし')
             })
 
         st.markdown(f"**大学:** {university}")
