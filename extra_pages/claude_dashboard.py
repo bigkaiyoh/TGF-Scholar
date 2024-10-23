@@ -106,7 +106,7 @@ def display_submission_details(submission_text, feedback):
     col1, col2 = st.columns([2, 3])
 
     with col1:
-        st.write("**志望動機書:**")
+        st.subheader("志望動機書")
         box_content = submission_text.replace('\n', '<br>')
         st.markdown(f"""
             <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #f9f9f9;">
@@ -115,8 +115,8 @@ def display_submission_details(submission_text, feedback):
         """, unsafe_allow_html=True)
         st.write(f'文字数: {len(submission_text.split())} 文字')
     with col2:
-        st.header("添削内容")
-        with st.container(height=600, border=True):
+        st.subheader("添削内容")
+        with st.container(height=800, border=True):
             st.write(feedback)
 
 
