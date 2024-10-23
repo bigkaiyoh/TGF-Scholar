@@ -8,57 +8,6 @@ from datetime import datetime
 from setup.firebase_setup import db
 import html
 
-def custom_css():
-    """Add custom CSS for better styling"""
-    st.markdown("""
-        <style>
-        /* Metric card styling */
-        .metric-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        .metric-card {
-            background-color: #ffffff;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 1rem;
-            flex: 1;
-            min-width: 200px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .metric-label {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-        .metric-value {
-            color: #111;
-            font-size: 1.8rem;
-            font-weight: bold;
-        }
-        
-        /* Tab content styling */
-        .stTabs [data-baseweb="tab-panel"] {
-            padding: 1rem 0;
-        }
-        
-        /* Table styling */
-        .dataframe {
-            border-collapse: collapse;
-            margin: 1rem 0;
-            width: 100%;
-        }
-        .dataframe th {
-            background-color: #f8f9fa;
-        }
-        .dataframe td, .dataframe th {
-            padding: 0.5rem;
-            border: 1px solid #dee2e6;
-        }
-        </style>
-    """, unsafe_allow_html=True)
 
 
 # Fetch submission data using a collection group query
@@ -217,10 +166,9 @@ def display_submission_history(user_id):
     except Exception as e:
         st.error("提出履歴の取得中にエラーが発生しました。")
 
-def display_metrics_dashboard(registrations_this_month, active_users, todays_submissions, todays_users):
-    """Display metrics in a responsive grid layout"""
-    st.markdown('<div class="metric-container">', unsafe_allow_html=True)
-    
+# Display full metrics (for full dashboard view)
+def display_full_metrics(registrations_this_month, active_users, todays_submissions, todays_users):
+    col1, col2, col3, col4 = st.columns(4)
     metrics = [
         ("本日の提出数", todays_submissions),
         ("本日のアクティブユーザー数", todays_users),
@@ -228,45 +176,34 @@ def display_metrics_dashboard(registrations_this_month, active_users, todays_sub
         ("アクティブユーザー数", active_users)
     ]
     
-    for label, value in metrics:
-        st.markdown(f"""
+    for i, (label, value) in enumerate(metrics):
+        with [col1, col2, col3, col4][i]:
+            st.markdown(f"""
             <div class="metric-card">
                 <div class="metric-label">{label}</div>
                 <div class="metric-value">{value}</div>
             </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
-def display_overview_tab(submissions_df, organization):
-    """Display overview tab content"""
-    st.subheader("📊 データ概要")
-    
-    if not submissions_df.empty:
-        # Show submission trends
-        st.write("提出トレンド")
-        submissions_by_date = submissions_df.groupby('date').size().reset_index(name='count')
-        st.line_chart(submissions_by_date.set_index('date'))
-        
-        # Show user activity
-        st.write("ユーザーアクティビティ")
-        user_activity = submissions_df.groupby('user_id').size().reset_index(name='submissions')
-        st.bar_chart(user_activity.set_index('user_id'))
-    else:
-        st.info("データがまだありません。")
-
-def display_users_tab(user_data):
-    """Display users tab content"""
+def display_users_tab(user_data, submissions_df):
+    """Display users tab content with activity graph"""
     st.subheader("👥 ユーザー一覧")
     
-    # Add search functionality
     if user_data:
+        # Add search functionality
         search_term = st.text_input("🔍 ユーザーを検索", "")
         
         df = pd.DataFrame(user_data)
         if search_term:
             df = df[df['User ID'].str.contains(search_term, case=False, na=False)]
         
+        # Display user activity graph if there's submission data
+        if not submissions_df.empty:
+            st.write("📊 ユーザーアクティビティ")
+            user_activity = submissions_df.groupby('user_id').size().reset_index(name='submissions')
+            st.bar_chart(user_activity.set_index('user_id'))
+        
+        # Display users table
         display_active_users_table(user_data)
     else:
         st.info("ユーザーデータがありません。")
@@ -290,18 +227,11 @@ def display_submissions_tab(user_data, selected_user_id=None):
 def claude_org_dashboard(organization):
     """Main dashboard function with tabbed interface"""
     # Apply custom styling
-    custom_css()
     apply_custom_css()
     
     # Display organization header
     display_org_header(organization)
     
-    # Add logout button to sidebar
-    with st.sidebar:
-        if st.button("ログアウト", key="logout"):
-            logout_message = logout_org()
-            st.success(logout_message)
-            st.rerun()
     
     # Fetch all necessary data
     try:
@@ -316,23 +246,25 @@ def claude_org_dashboard(organization):
         else:
             todays_submissions = todays_users = 0
         
-        # Display metrics dashboard
-        display_metrics_dashboard(registrations_this_month, active_users, todays_submissions, todays_users)
+        # Display original metrics
+        display_full_metrics(registrations_this_month, active_users, todays_submissions, todays_users)
         
-        # Create tabs
-        tab1, tab2, tab3 = st.tabs(["📊 概要", "👥 ユーザー", "📝 提出履歴"])
+        # Create two tabs
+        tab1, tab2 = st.tabs(["👥 ユーザー", "📝 提出履歴"])
         
         # Display tab contents
         with tab1:
-            display_overview_tab(submissions_df, organization)
+            display_users_tab(user_data, submissions_df)
         
         with tab2:
-            display_users_tab(user_data)
-        
-        with tab3:
             display_submissions_tab(user_data)
             
     except Exception as e:
         st.error(f"ダッシュボードの読み込み中にエラーが発生しました: {str(e)}")
         if st.button("再読み込み"):
             st.rerun()
+
+    if st.button("ログアウト", key="logout", help="クリックしてログアウト"):
+        logout_message = logout_org()
+        st.success(logout_message)
+        st.rerun()
