@@ -298,7 +298,7 @@ def claude_org_dashboard(organization):
     
     # Add logout button to sidebar
     with st.sidebar:
-        if st.button("ログアウト", key="logouto"):
+        if st.button("ログアウト", key="logout"):
             logout_message = logout_org()
             st.success(logout_message)
             st.rerun()
