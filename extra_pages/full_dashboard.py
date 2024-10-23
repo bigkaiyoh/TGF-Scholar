@@ -94,40 +94,61 @@ def display_submission_history(user_id):
             'submit_time', direction=firestore.Query.DESCENDING)
         submissions = list(submissions_ref.stream())
 
+        submission_data = []
+        submission_details = []
+        for idx, submission in enumerate(submissions):
+            submission_dict = submission.to_dict()
+            submit_time = submission_dict.get('submit_time')
+            submit_time_str = submit_time.strftime('%Y-%m-%d %H:%M:%S') if submit_time else '不明'
+            
+            # Prepare data for the table
+            submission_data.append({
+                "提出番号": idx + 1,
+                "提出日時": submit_time_str,
+            })
+            
+            # Store detailed submission data
+            submission_details.append({
+                "text": submission_dict.get('text', ''),
+                "feedback": submission_dict.get('feedback', '添削なし')
+            })
+
         st.markdown(f"**大学:** {university}")
         st.markdown(f"**学部:** {faculty}")
         if department:
             st.markdown(f"**学科:** {department}")
         
-        if submissions:
-            for idx, submission in enumerate(submissions):
-                submission_dict = submission.to_dict()
-                submit_time = submission_dict.get('submit_time')
-                submit_time_str = submit_time.strftime('%Y-%m-%d %H:%M:%S') if submit_time else '不明'
-                submission_text = submission_dict.get('text', '')
-                feedback = submission_dict.get('feedback', '添削なし')
-                
-                # Display submission details
-                st.markdown(f"### 提出 {idx + 1}")
-                st.markdown(f"- **提出日時:** {submit_time_str}")
-                st.markdown(f"- **提出志望動機書:**")
+        if submission_data:
+            df = pd.DataFrame(submission_data)
+
+            # Display the interactive table
+            edited_df = st.data_editor(
+                df,
+                use_container_width=True,
+                hide_index=True,
+                key="submission_data_editor"
+            )
+
+            # Get the selected row index
+            selected_indices = edited_df.index[edited_df['_selectedRowState'] == True].tolist()
+            if selected_indices:
+                idx = selected_indices[0]
+                submission_text = submission_details[idx]['text']
+                feedback = submission_details[idx]['feedback']
+
+                # Display submission text and feedback
+                st.markdown("### 提出内容と添削")
+                st.markdown(f"**提出志望動機書:**")
                 st.write(submission_text)
-
-                # Button to display feedback
-                button_key = f"show_feedback_{user_id}_{idx}"
-                if st.button("添削内容を表示", key=button_key):
-                    st.session_state[button_key] = not st.session_state.get(button_key, False)
-
-                # Show feedback if button was clicked
-                if st.session_state.get(button_key, False):
-                    st.markdown(f"**添削内容:**")
-                    st.write(feedback)
-
-                st.markdown("---")  # Separator between submissions
+                st.markdown(f"**添削内容:**")
+                st.write(feedback)
+            else:
+                st.info("提出を選択してください。")
         else:
             st.info("このユーザーの提出は見つかりませんでした。")
     except Exception as e:
-        st.error(f"提出履歴の取得中にエラーが発生しました。")
+        st.error("提出履歴の取得中にエラーが発生しました。")
+
 
 
 def full_org_dashboard(organization):
