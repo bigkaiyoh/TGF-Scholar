@@ -165,7 +165,7 @@ def main():
     
         # Decide which dashboard to show based on the 'full_dashboard' setting
         if org.get('full_dashboard', False):
-            full_org_dashboard(org)
+            # full_org_dashboard(org)
             claude_org_dashboard(org)
         else:
             show_org_dashboard(org)
