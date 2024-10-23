@@ -122,18 +122,15 @@ def display_submission_history(user_id):
         if submission_data:
             df = pd.DataFrame(submission_data)
             # Display the interactive table
-            # Display the interactive table
-            st.dataframe(
-                df.style.set_properties(
-                    **{'text-align': 'left', 'white-space': 'pre-wrap'}
-                ).set_table_styles(
-                    [{'selector': 'th', 'props': [('text-align', 'left')]}]
-                ),
-                use_container_width=True
+            st.data_editor(
+                df,
+                use_container_width=True,
+                hide_index=True,
+                key="submission_data_editor"
             )
 
             # Create submission options for the selectbox
-            submission_options = [f"提出 {item['提出番号']} - {item['提出日時']}" for item in submission_data]
+            submission_options = [f"提出 {item['提出番号']}" for item in submission_data]
 
             # Display the selectbox below the table
             selected_submission = st.selectbox("表示する提出を選択してください", submission_options)
@@ -146,43 +143,25 @@ def display_submission_history(user_id):
             feedback = submission_details[idx]['feedback']
 
             # Display the submission text and feedback using styled boxes
-            st.markdown("### 提出内容と添削")
-            st.write("**志望動機書:**")
+            with st.expander("入力内容", expanded=False):
+                st.write("**志望動機書:**")
+                # Use markdown to display the text in a styled box
+                box_content = submission_text.replace('\n', '<br>')
+                st.markdown(f"""
+                    <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #f9f9f9;">
+                        {box_content}
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                st.write(f'文字数: {len(submission_text)} 文字')
                             
-            # Use markdown to display the submission text in a styled box
-            box_content = submission_text.replace('\n', '<br>')
-            st.markdown(f"""
-                <div style="
-                    border: 1px solid #ccc; 
-                    padding: 10px; 
-                    border-radius: 5px; 
-                    background-color: #f9f9f9;
-                    white-space: pre-wrap;
-                ">
-                    {html.escape(submission_text)}
-                </div>
-            """, unsafe_allow_html=True)
-                            
-            st.write(f'文字数: {len(submission_text)} 文字')
 
             # Display feedback in a styled box with background color
             st.write("**添削内容:**")
             
             # Escape special characters to prevent HTML rendering issues
-            feedback_content = html.escape(feedback)
+            st.write(feedback)
             
-            # Display the feedback using st.markdown without replacing newlines
-            st.markdown(f"""
-                <div style="
-                    border: 1px solid #ccc; 
-                    padding: 10px; 
-                    border-radius: 5px; 
-                    background-color: #e8f4f8;
-                    white-space: pre-wrap;
-                ">
-                    {feedback_content}
-                </div>
-            """, unsafe_allow_html=True)
         else:
             st.info("このユーザーの提出は見つかりませんでした。")
     except Exception as e:
