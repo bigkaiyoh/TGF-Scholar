@@ -6,6 +6,7 @@ from .dashboard_common import apply_custom_css, display_org_header, get_user_dat
 from auth.login_manager import logout_org
 from datetime import datetime
 from setup.firebase_setup import db
+import html
 
 # Fetch submission data using a collection group query
 def fetch_submission_data(org_code):
@@ -120,6 +121,16 @@ def display_submission_history(user_id):
         
         if submission_data:
             df = pd.DataFrame(submission_data)
+            # Display the interactive table
+            # Display the interactive table
+            st.dataframe(
+                df.style.set_properties(
+                    **{'text-align': 'left', 'white-space': 'pre-wrap'}
+                ).set_table_styles(
+                    [{'selector': 'th', 'props': [('text-align', 'left')]}]
+                ),
+                use_container_width=True
+            )
 
             # Create submission options for the selectbox
             submission_options = [f"提出 {item['提出番号']} - {item['提出日時']}" for item in submission_data]
@@ -141,8 +152,14 @@ def display_submission_history(user_id):
             # Use markdown to display the submission text in a styled box
             box_content = submission_text.replace('\n', '<br>')
             st.markdown(f"""
-                <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #f9f9f9;">
-                    {box_content}
+                <div style="
+                    border: 1px solid #ccc; 
+                    padding: 10px; 
+                    border-radius: 5px; 
+                    background-color: #f9f9f9;
+                    white-space: pre-wrap;
+                ">
+                    {html.escape(submission_text)}
                 </div>
             """, unsafe_allow_html=True)
                             
@@ -150,9 +167,19 @@ def display_submission_history(user_id):
 
             # Display feedback in a styled box with background color
             st.write("**添削内容:**")
-            feedback_content = feedback.replace('\n', '<br>')
+            
+            # Escape special characters to prevent HTML rendering issues
+            feedback_content = html.escape(feedback)
+            
+            # Display the feedback using st.markdown without replacing newlines
             st.markdown(f"""
-                <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #e8f4f8;">
+                <div style="
+                    border: 1px solid #ccc; 
+                    padding: 10px; 
+                    border-radius: 5px; 
+                    background-color: #e8f4f8;
+                    white-space: pre-wrap;
+                ">
                     {feedback_content}
                 </div>
             """, unsafe_allow_html=True)
