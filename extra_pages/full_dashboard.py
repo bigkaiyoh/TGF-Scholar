@@ -153,14 +153,15 @@ def display_submission_history(user_id):
                     </div>
                 """, unsafe_allow_html=True)
                 
-                st.write(f'文字数: {len(submission_text)} 文字')
+                st.write(f'文字数: {len(submission_text.split())} 文字')
                             
 
             # Display feedback in a styled box with background color
             st.write("**添削内容:**")
             
             # Escape special characters to prevent HTML rendering issues
-            st.write(feedback)
+            with st.chat_message("ai"):
+                st.write(feedback)
             
         else:
             st.info("このユーザーの提出は見つかりませんでした。")
