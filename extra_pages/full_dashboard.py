@@ -143,7 +143,7 @@ def display_submission_history(user_id):
             feedback = submission_details[idx]['feedback']
 
             # Display the submission text and feedback using styled boxes
-            with st.expander("入力内容", expanded=False):
+            with st.expander("入力志望動機書", expanded=False):
                 st.write("**志望動機書:**")
                 # Use markdown to display the text in a styled box
                 box_content = submission_text.replace('\n', '<br>')
@@ -157,11 +157,8 @@ def display_submission_history(user_id):
                             
 
             # Display feedback in a styled box with background color
-            st.write("**添削内容:**")
-            
-            # Escape special characters to prevent HTML rendering issues
-            with st.chat_message("ai"):
-                st.write(feedback)
+            st.header("添削内容")
+            st.write(feedback)
             
         else:
             st.info("このユーザーの提出は見つかりませんでした。")
