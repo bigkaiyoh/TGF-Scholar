@@ -88,6 +88,8 @@ def fetch_submissions(user_id):
         submission_data.append({
             "提出番号": idx + 1,
             "提出日時": submit_time_str,
+            "志望動機書プレビュー": submission_dict.get('text', '')[:30] + "...",  # Preview first 30 characters of submission text
+            "フィードバックプレビュー": submission_dict.get('feedback', '')[:30] + "..."  # Preview first 30 characters of feedback
         })
 
         # Store detailed submission data
@@ -101,8 +103,8 @@ def fetch_submissions(user_id):
 
 # Function to display submission details
 def display_submission_details(submission_text, feedback):
-    """Display the submission text and feedback in styled sections."""
-    with st.expander("入力志望動機書", expanded=False):
+    col1, col2 = st.columns(2)
+    with col1:
         st.write("**志望動機書:**")
         box_content = submission_text.replace('\n', '<br>')
         st.markdown(f"""
@@ -111,10 +113,10 @@ def display_submission_details(submission_text, feedback):
             </div>
         """, unsafe_allow_html=True)
         st.write(f'文字数: {len(submission_text.split())} 文字')
+    with col2:
+        st.header("添削内容")
+        st.write(feedback)
 
-    # Display feedback in a styled box with background color
-    st.header("添削内容")
-    st.write(feedback)
 
 
 # Display submission history for a user
@@ -170,10 +172,10 @@ def display_submission_history(user_id):
 def display_full_metrics(registrations_this_month, active_users, todays_submissions, todays_users):
     col1, col2, col3, col4 = st.columns(4)
     metrics = [
-        ("本日の提出数", todays_submissions),
-        ("本日のアクティブユーザー数", todays_users),
-        ("今月の登録数", registrations_this_month),
-        ("アクティブユーザー数", active_users)
+        ("📅 本日の提出数", todays_submissions),
+        ("👥 本日のアクティブユーザー数", todays_users),
+        ("📝 今月の登録数", registrations_this_month),
+        ("✅ アクティブユーザー数", active_users)
     ]
     
     for i, (label, value) in enumerate(metrics):
