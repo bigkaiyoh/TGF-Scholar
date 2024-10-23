@@ -99,7 +99,7 @@ def display_submission_history(user_id):
         for idx, submission in enumerate(submissions):
             submission_dict = submission.to_dict()
             submit_time = submission_dict.get('submit_time')
-            submit_time_str = submit_time.strftime('%Y-%m-%d %H:%M:%S') if submit_time else '不明'
+            submit_time_str = submit_time.strftime('%Y-%m-%d %H:%M') if submit_time else '不明'
             
             # Prepare data for the table
             submission_data.append({
@@ -129,21 +129,21 @@ def display_submission_history(user_id):
                 key="submission_data_editor"
             )
 
-            # Get the selected row index
-            selected_indices = edited_df.index[edited_df['_selectedRowState'] == True].tolist()
-            if selected_indices:
-                idx = selected_indices[0]
-                submission_text = submission_details[idx]['text']
-                feedback = submission_details[idx]['feedback']
+            # # Get the selected row index
+            # selected_indices = edited_df.index[edited_df['_selectedRowState'] == True].tolist()
+            # if selected_indices:
+            #     idx = selected_indices[0]
+            #     submission_text = submission_details[idx]['text']
+            #     feedback = submission_details[idx]['feedback']
 
-                # Display submission text and feedback
-                st.markdown("### 提出内容と添削")
-                st.markdown(f"**提出志望動機書:**")
-                st.write(submission_text)
-                st.markdown(f"**添削内容:**")
-                st.write(feedback)
-            else:
-                st.info("提出を選択してください。")
+            #     # Display submission text and feedback
+            #     st.markdown("### 提出内容と添削")
+            #     st.markdown(f"**提出志望動機書:**")
+            #     st.write(submission_text)
+            #     st.markdown(f"**添削内容:**")
+            #     st.write(feedback)
+            # else:
+            #     st.info("提出を選択してください。")
         else:
             st.info("このユーザーの提出は見つかりませんでした。")
     except Exception as e:
