@@ -9,6 +9,7 @@ from auth.register import register_user
 from auth.forgot_password import render_forgot_password_form
 from extra_pages.org_dashboard import show_org_dashboard
 from extra_pages.full_dashboard import full_org_dashboard
+from extra_pages.claude_dashboard import claude_org_dashboard
 from setup.firebase_setup import db
 from streamlit_option_menu import option_menu
 from datetime import datetime
@@ -165,6 +166,7 @@ def main():
         # Decide which dashboard to show based on the 'full_dashboard' setting
         if org.get('full_dashboard', False):
             full_org_dashboard(org)
+            claude_org_dashboard(org)
         else:
             show_org_dashboard(org)
 
