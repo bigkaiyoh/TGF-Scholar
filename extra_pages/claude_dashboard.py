@@ -88,8 +88,8 @@ def fetch_submissions(user_id):
         submission_data.append({
             "提出番号": idx + 1,
             "提出日時": submit_time_str,
-            "志望動機書プレビュー": submission_dict.get('text', '')[:30] + "...",  # Preview first 30 characters of submission text
-            "フィードバックプレビュー": submission_dict.get('feedback', '')[:30] + "..."  # Preview first 30 characters of feedback
+            "志望動機書": submission_dict.get('text', ''),
+            "フィードバックプレビュー": submission_dict.get('feedback', '')[:300] + "..."  # Preview first 30 characters of feedback
         })
 
         # Store detailed submission data
@@ -103,7 +103,8 @@ def fetch_submissions(user_id):
 
 # Function to display submission details
 def display_submission_details(submission_text, feedback):
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([2, 3])
+
     with col1:
         st.write("**志望動機書:**")
         box_content = submission_text.replace('\n', '<br>')
@@ -115,8 +116,8 @@ def display_submission_details(submission_text, feedback):
         st.write(f'文字数: {len(submission_text.split())} 文字')
     with col2:
         st.header("添削内容")
-        st.write(feedback)
-
+        with st.container(height=600, border=True):
+            st.write(feedback)
 
 
 # Display submission history for a user
