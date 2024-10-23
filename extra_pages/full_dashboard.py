@@ -7,9 +7,6 @@ from auth.login_manager import logout_org
 from datetime import datetime
 from setup.firebase_setup import db
 
-if 'selected_feedback' not in st.session_state:
-    st.session_state.selected_feedback = None
-
 # Fetch submission data using a collection group query
 def fetch_submission_data(org_code):
     """Fetch submission data for all users in an organization."""
@@ -80,12 +77,12 @@ def display_full_metrics(registrations_this_month, active_users, todays_submissi
 # Display submission history for a user
 def display_submission_history(user_id):
     st.subheader(f"{user_id}の提出履歴")
-
+    
     try:
         # Fetch user data for university, faculty, and department
         user_ref = db.collection('users').document(user_id)
         user_doc = user_ref.get()
-        if user_doc.exists():
+        if user_doc.exists:
             user_data = user_doc.to_dict()
             university = user_data.get('university', '')
             faculty = user_data.get('faculty', '')
@@ -93,46 +90,44 @@ def display_submission_history(user_id):
         else:
             university = faculty = department = ''
         
-        submissions_ref = user_ref.collection('submissions').order_by('submit_time', direction=firestore.Query.DESCENDING)
-        submissions = submissions_ref.stream()
-
-        submission_data = []
-        for i, submission in enumerate(submissions):
-            submission_dict = submission.to_dict()
-            submission_data.append({
-                "index": i,
-                "提出日時": submission_dict.get('submit_time').strftime('%Y-%m-%d %H:%M:%S') if submission_dict.get('submit_time') else '不明',
-                "提出志望動機書": submission_dict.get('text', ''),
-                "添削内容": submission_dict.get('feedback', '添削なし')
-            })
+        submissions_ref = user_ref.collection('submissions').order_by(
+            'submit_time', direction=firestore.Query.DESCENDING)
+        submissions = list(submissions_ref.stream())
 
         st.markdown(f"**大学:** {university}")
         st.markdown(f"**学部:** {faculty}")
         if department:
             st.markdown(f"**学科:** {department}")
+        
+        if submissions:
+            for idx, submission in enumerate(submissions):
+                submission_dict = submission.to_dict()
+                submit_time = submission_dict.get('submit_time')
+                submit_time_str = submit_time.strftime('%Y-%m-%d %H:%M:%S') if submit_time else '不明'
+                submission_text = submission_dict.get('text', '')
+                feedback = submission_dict.get('feedback', '添削なし')
+                
+                # Display submission details
+                st.markdown(f"### 提出 {idx + 1}")
+                st.markdown(f"- **提出日時:** {submit_time_str}")
+                st.markdown(f"- **提出志望動機書:**")
+                st.write(submission_text)
 
-        if submission_data:
-            df = pd.DataFrame(submission_data)
+                # Button to display feedback
+                button_key = f"show_feedback_{user_id}_{idx}"
+                if st.button("添削内容を表示", key=button_key):
+                    st.session_state[button_key] = not st.session_state.get(button_key, False)
 
-            # Display the table with selectable rows
-            for idx, row in df.iterrows():
-                st.write(f"提出日時: {row['提出日時']}")
-                st.write(f"提出志望動機書: {row['提出志望動機書'][:50]}...")  # Show a truncated version
+                # Show feedback if button was clicked
+                if st.session_state.get(button_key, False):
+                    st.markdown(f"**添削内容:**")
+                    st.write(feedback)
 
-                # Button to view feedback for the selected row
-                if st.button(f"添削内容を見る", key=f"feedback_button_{idx}"):
-                    st.session_state.selected_feedback = row["添削内容"]
-
-            # Display the selected feedback below the table
-            if "selected_feedback" in st.session_state:
-                st.markdown("### 選択された添削内容")
-                st.write(st.session_state.selected_feedback)
-
+                st.markdown("---")  # Separator between submissions
         else:
             st.info("このユーザーの提出は見つかりませんでした。")
     except Exception as e:
         st.error(f"提出履歴の取得中にエラーが発生しました。")
-
 
 
 def full_org_dashboard(organization):
