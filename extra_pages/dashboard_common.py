@@ -115,6 +115,13 @@ def display_active_users_table(user_data):
     if df.empty:
         st.info("ユーザーが見つかりませんでした。")
     else:
+        # Add search functionality
+        search_term = st.text_input("🔍 ユーザーを検索", "")
+        
+        if search_term:
+            # Filter users based on the search term (case-insensitive)
+            df = df[df['User ID'].str.contains(search_term, case=False, na=False)]
+        
         # Rename columns to Japanese
         df.rename(columns={
             'User ID': 'ユーザーID',

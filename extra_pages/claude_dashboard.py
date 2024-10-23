@@ -190,13 +190,6 @@ def display_users_tab(user_data, submissions_df):
     st.subheader("👥 ユーザー一覧")
     
     if user_data:
-        # Add search functionality
-        search_term = st.text_input("🔍 ユーザーを検索", "")
-        
-        df = pd.DataFrame(user_data)
-        if search_term:
-            df = df[df['User ID'].str.contains(search_term, case=False, na=False)]
-        
         # Display user activity graph if there's submission data
         if not submissions_df.empty:
             st.write("📊 ユーザーアクティビティ")
