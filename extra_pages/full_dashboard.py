@@ -75,53 +75,89 @@ def display_full_metrics(registrations_this_month, active_users, todays_submissi
             </div>
             """, unsafe_allow_html=True)
 
+# Function to fetch user details
+def fetch_user_details(user_id):
+    """Fetch user details like university, faculty, and department."""
+    user_ref = db.collection('users').document(user_id)
+    user_doc = user_ref.get()
+    if user_doc.exists:
+        user_data = user_doc.to_dict()
+        university = user_data.get('university', '')
+        faculty = user_data.get('faculty', '')
+        department = user_data.get('department', '')
+    else:
+        university = faculty = department = ''
+    return university, faculty, department
+
+# Function to fetch submissions and prepare the data
+def fetch_submissions(user_id):
+    """Fetch submission data and format for display."""
+    user_ref = db.collection('users').document(user_id)
+    submissions_ref = user_ref.collection('submissions').order_by(
+        'submit_time', direction=firestore.Query.DESCENDING)
+    submissions = list(submissions_ref.stream())
+
+    submission_data = []
+    submission_details = []
+    for idx, submission in enumerate(submissions):
+        submission_dict = submission.to_dict()
+        submit_time = submission_dict.get('submit_time')
+        submit_time_str = submit_time.strftime('%Y-%m-%d %H:%M') if submit_time else '不明'
+
+        # Prepare data for the table
+        submission_data.append({
+            "提出番号": idx + 1,
+            "提出日時": submit_time_str,
+        })
+
+        # Store detailed submission data
+        submission_details.append({
+            "text": submission_dict.get('text', ''),
+            "feedback": submission_dict.get('feedback', '添削なし')
+        })
+
+    return submission_data, submission_details
+
+
+# Function to display submission details
+def display_submission_details(submission_text, feedback):
+    """Display the submission text and feedback in styled sections."""
+    with st.expander("入力志望動機書", expanded=False):
+        st.write("**志望動機書:**")
+        box_content = submission_text.replace('\n', '<br>')
+        st.markdown(f"""
+            <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #f9f9f9;">
+                {box_content}
+            </div>
+        """, unsafe_allow_html=True)
+        st.write(f'文字数: {len(submission_text.split())} 文字')
+
+    # Display feedback in a styled box with background color
+    st.header("添削内容")
+    st.write(feedback)
+
+
 # Display submission history for a user
 def display_submission_history(user_id):
+    """Display user submission history."""
     st.subheader(f"{user_id}の提出履歴")
-    
+
     try:
-        # Fetch user data for university, faculty, and department
-        user_ref = db.collection('users').document(user_id)
-        user_doc = user_ref.get()
-        if user_doc.exists:
-            user_data = user_doc.to_dict()
-            university = user_data.get('university', '')
-            faculty = user_data.get('faculty', '')
-            department = user_data.get('department', '')
-        else:
-            university = faculty = department = ''
-        
-        submissions_ref = user_ref.collection('submissions').order_by(
-            'submit_time', direction=firestore.Query.DESCENDING)
-        submissions = list(submissions_ref.stream())
+        # Fetch user details
+        university, faculty, department = fetch_user_details(user_id)
 
-        submission_data = []
-        submission_details = []
-        for idx, submission in enumerate(submissions):
-            submission_dict = submission.to_dict()
-            submit_time = submission_dict.get('submit_time')
-            submit_time_str = submit_time.strftime('%Y-%m-%d %H:%M') if submit_time else '不明'
-            
-            # Prepare data for the table
-            submission_data.append({
-                "提出番号": idx + 1,
-                "提出日時": submit_time_str,
-            })
-            
-            # Store detailed submission data
-            submission_details.append({
-                "text": submission_dict.get('text', ''),
-                "feedback": submission_dict.get('feedback', '添削なし')
-            })
-
+        # Display university, faculty, and department
         st.markdown(f"**大学:** {university}")
         st.markdown(f"**学部:** {faculty}")
         if department:
             st.markdown(f"**学科:** {department}")
-        
+
+        # Fetch submission data
+        submission_data, submission_details = fetch_submissions(user_id)
+
         if submission_data:
-            df = pd.DataFrame(submission_data)
             # Display the interactive table
+            df = pd.DataFrame(submission_data)
             st.data_editor(
                 df,
                 use_container_width=True,
@@ -143,22 +179,7 @@ def display_submission_history(user_id):
             feedback = submission_details[idx]['feedback']
 
             # Display the submission text and feedback using styled boxes
-            with st.expander("入力志望動機書", expanded=False):
-                st.write("**志望動機書:**")
-                # Use markdown to display the text in a styled box
-                box_content = submission_text.replace('\n', '<br>')
-                st.markdown(f"""
-                    <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #f9f9f9;">
-                        {box_content}
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                st.write(f'文字数: {len(submission_text.split())} 文字')
-                            
-
-            # Display feedback in a styled box with background color
-            st.header("添削内容")
-            st.write(feedback)
+            display_submission_details(submission_text, feedback)
             
         else:
             st.info("このユーザーの提出は見つかりませんでした。")
