@@ -8,6 +8,8 @@ from datetime import datetime
 from setup.firebase_setup import db
 import html
 
+
+
 # Fetch submission data using a collection group query
 def fetch_submission_data(org_code):
     """Fetch submission data for all users in an organization."""
@@ -52,29 +54,7 @@ def fetch_submission_data(org_code):
     else:
         # No valid submissions after processing
         return pd.DataFrame()
-
-
-
-
-# Display full metrics (for full dashboard view)
-def display_full_metrics(registrations_this_month, active_users, todays_submissions, todays_users):
-    col1, col2, col3, col4 = st.columns(4)
-    metrics = [
-        ("本日の提出数", todays_submissions),
-        ("本日のアクティブユーザー数", todays_users),
-        ("今月の登録数", registrations_this_month),
-        ("アクティブユーザー数", active_users)
-    ]
     
-    for i, (label, value) in enumerate(metrics):
-        with [col1, col2, col3, col4][i]:
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-label">{label}</div>
-                <div class="metric-value">{value}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
 # Function to fetch user details
 def fetch_user_details(user_id):
     """Fetch user details like university, faculty, and department."""
@@ -108,6 +88,8 @@ def fetch_submissions(user_id):
         submission_data.append({
             "提出番号": idx + 1,
             "提出日時": submit_time_str,
+            "志望動機書": submission_dict.get('text', ''),
+            "フィードバックプレビュー": submission_dict.get('feedback', '')[:300] + "..."  # Preview first 30 characters of feedback
         })
 
         # Store detailed submission data
@@ -121,9 +103,10 @@ def fetch_submissions(user_id):
 
 # Function to display submission details
 def display_submission_details(submission_text, feedback):
-    """Display the submission text and feedback in styled sections."""
-    with st.expander("入力志望動機書", expanded=False):
-        st.write("**志望動機書:**")
+    col1, col2 = st.columns([2, 3])
+
+    with col1:
+        st.subheader("志望動機書")
         box_content = submission_text.replace('\n', '<br>')
         st.markdown(f"""
             <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-color: #f9f9f9;">
@@ -131,10 +114,10 @@ def display_submission_details(submission_text, feedback):
             </div>
         """, unsafe_allow_html=True)
         st.write(f'文字数: {len(submission_text.split())} 文字')
-
-    # Display feedback in a styled box with background color
-    st.header("添削内容")
-    st.write(feedback)
+    with col2:
+        st.subheader("添削内容")
+        with st.container(height=800, border=True):
+            st.write(feedback)
 
 
 # Display submission history for a user
@@ -186,48 +169,97 @@ def display_submission_history(user_id):
     except Exception as e:
         st.error("提出履歴の取得中にエラーが発生しました。")
 
+# Display full metrics (for full dashboard view)
+def display_full_metrics(registrations_this_month, active_users, todays_submissions, todays_users):
+    col1, col2, col3, col4 = st.columns(4)
+    metrics = [
+        ("📅 本日の提出数", todays_submissions),
+        ("👥 本日のアクティブユーザー数", todays_users),
+        ("📝 今月の登録数", registrations_this_month),
+        ("✅ アクティブユーザー数", active_users)
+    ]
+    
+    for i, (label, value) in enumerate(metrics):
+        with [col1, col2, col3, col4][i]:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-label">{label}</div>
+                <div class="metric-value">{value}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
+def display_users_tab(user_data, submissions_df):
+    """Display users tab content with activity graph"""
+    st.subheader("👥 ユーザー一覧")
+    
+    if user_data:
+        # Display users table
+        display_active_users_table(user_data)
+
+        # Display user activity graph if there's submission data
+        if not submissions_df.empty:
+            st.write("📊 ユーザーアクティビティ")
+            user_activity = submissions_df.groupby('user_id').size().reset_index(name='submissions')
+            st.bar_chart(user_activity.set_index('user_id'))
+    
+    else:
+        st.info("ユーザーデータがありません。")
+
+def display_submissions_tab(user_data, selected_user_id=None):
+    """Display submissions tab content"""
+    st.subheader("📝 提出履歴")
+    
+    df = pd.DataFrame(user_data)
+    if not df.empty:
+        selected_user = st.selectbox(
+            "提出履歴を表示するユーザーIDを選択してください",
+            df['User ID'].tolist()
+        )
+        
+        if selected_user:
+            display_submission_history(selected_user)
+    else:
+        st.info("提出データがありません。")
 
 def full_org_dashboard(organization):
+    """Main dashboard function with tabbed interface"""
+    # Apply custom styling
     apply_custom_css()
+    
+    # Display organization header
     display_org_header(organization)
-
-    user_data, registrations_this_month, active_users = get_user_data(organization['org_code'])
-    submissions_df = fetch_submission_data(organization['org_code'])
-
-    # Calculate today's date once
-    today = datetime.now(pytz.timezone(organization['timezone'])).date()
-
-    if not submissions_df.empty:
-        # Ensure 'date' column exists before processing it
-        if 'date' in submissions_df.columns:
+    
+    
+    # Fetch all necessary data
+    try:
+        user_data, registrations_this_month, active_users = get_user_data(organization['org_code'])
+        submissions_df = fetch_submission_data(organization['org_code'])
+        
+        # Calculate today's metrics
+        today = datetime.now(pytz.timezone(organization['timezone'])).date()
+        if not submissions_df.empty and 'date' in submissions_df.columns:
             todays_submissions = len(submissions_df[submissions_df['date'] == today])
             todays_users = submissions_df[submissions_df['date'] == today]['user_id'].nunique()
         else:
-            st.warning("有効な日付のある提出がありません。")
-            todays_submissions = 0
-            todays_users = 0
-    else:
-        todays_submissions = 0
-        todays_users = 0
-
-    display_full_metrics(registrations_this_month, active_users, todays_submissions, todays_users)
-
-    st.markdown("---")
-
-    display_active_users_table(user_data)
-
-    st.markdown("---")
-
-    # Create the DataFrame here
-    df = pd.DataFrame(user_data)
-
-    if not df.empty:
-        selected_user_id = st.selectbox("提出履歴を表示するユーザーIDを選択してください", df['User ID'].tolist())
-        if selected_user_id:
-            display_submission_history(selected_user_id)
-
-    st.markdown("---")
+            todays_submissions = todays_users = 0
+        
+        # Display original metrics
+        display_full_metrics(registrations_this_month, active_users, todays_submissions, todays_users)
+        
+        # Create two tabs
+        tab1, tab2 = st.tabs(["👥 ユーザー", "📝 提出履歴"])
+        
+        # Display tab contents
+        with tab1:
+            display_users_tab(user_data, submissions_df)
+        
+        with tab2:
+            display_submissions_tab(user_data)
+            
+    except Exception as e:
+        st.error(f"ダッシュボードの読み込み中にエラーが発生しました: {str(e)}")
+        if st.button("再読み込み"):
+            st.rerun()
 
     if st.button("ログアウト", key="logout", help="クリックしてログアウト"):
         logout_message = logout_org()
