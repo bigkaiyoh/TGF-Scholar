@@ -6,13 +6,17 @@ from .dashboard_common import apply_custom_css, display_org_header, get_user_dat
 from auth.login_manager import logout_org
 from datetime import datetime
 from setup.firebase_setup import db
-import html
+from modules.modules import convert_to_timezone
 
 
 
 # Fetch submission data using a collection group query
-def fetch_submission_data(org_code, admin_timezone_str="UTC"):
+def fetch_submission_data():
     """Fetch submission data for all users in an organization."""
+    organization = st.session_state['organization']
+    org_code = organization['org_code']
+    admin_timezone_str = organization.get('timezone', 'UTC')
+
     submissions = []
     try:
         # Query all submissions where 'org_code' matches
@@ -23,15 +27,13 @@ def fetch_submission_data(org_code, admin_timezone_str="UTC"):
             # No submissions found for the organization
             return pd.DataFrame()  # Return an empty DataFrame without error
 
-        admin_timezone = pytz.timezone(admin_timezone_str)
-
         for submission in submissions_list:
             sub_data = submission.to_dict()
             submit_time = sub_data.get('submit_time')
+
             if submit_time and isinstance(submit_time, datetime):
-                # Convert the UTC submit_time to the admin's timezone
-                submit_time_utc = submit_time.replace(tzinfo=pytz.utc)
-                submit_time_in_admin_timezone = submit_time_utc.astimezone(admin_timezone)
+                # Use the utility function to convert the UTC submit_time to the admin's timezone
+                submit_time_in_admin_timezone = convert_to_timezone(submit_time, admin_timezone_str)
                 
                 sub_data.update({
                     'user_id': submission.reference.parent.parent.id,  # Get user ID from parent document
@@ -75,6 +77,9 @@ def fetch_user_details(user_id):
 
 # Function to fetch submissions and prepare the data
 def fetch_submissions(user_id):
+    organization = st.session_state['organization']
+    admin_timezone_str = organization.get('timezone', 'UTC')
+    
     """Fetch submission data and format for display."""
     user_ref = db.collection('users').document(user_id)
     submissions_ref = user_ref.collection('submissions').order_by(
@@ -83,10 +88,17 @@ def fetch_submissions(user_id):
 
     submission_data = []
     submission_details = []
+
     for idx, submission in enumerate(submissions):
         submission_dict = submission.to_dict()
         submit_time = submission_dict.get('submit_time')
-        submit_time_str = submit_time.strftime('%Y-%m-%d %H:%M') if submit_time else '不明'
+
+        if submit_time:
+            # Use the utility function to convert to the admin's timezone
+            submit_time = convert_to_timezone(submit_time, admin_timezone_str)
+            submit_time_str = submit_time.strftime('%Y-%m-%d %H:%M')
+        else:
+            submit_time_str = '不明'
 
         # Prepare data for the table
         submission_data.append({
@@ -209,7 +221,7 @@ def display_users_tab(user_data, submissions_df):
     else:
         st.info("ユーザーデータがありません。")
 
-def display_submissions_tab(user_data, selected_user_id=None):
+def display_submissions_tab(user_data):
     """Display submissions tab content"""
     st.subheader("📝 提出履歴")
     
@@ -225,25 +237,26 @@ def display_submissions_tab(user_data, selected_user_id=None):
     else:
         st.info("提出データがありません。")
 
-def full_org_dashboard(organization):
+def full_org_dashboard():
     """Main dashboard function with tabbed interface"""
     # Apply custom styling
     apply_custom_css()
+
+    # Directly access organization data from session state
+    organization = st.session_state['organization']
+    admin_timezone = organization.get('timezone', 'UTC')
     
     # Display organization header
-    display_org_header(organization)
+    display_org_header()
     
     
     # Fetch all necessary data
     try:
-        # Pass the admin's timezone to both get_user_data and fetch_submission_data
-        admin_timezone = organization.get('timezone', 'UTC')
-
         # Fetch user data with the admin's timezone
-        user_data, registrations_this_month, active_users = get_user_data(organization['org_code'], admin_timezone)
+        user_data, registrations_this_month, active_users = get_user_data()
 
         # Fetch submission data with the admin's timezone
-        submissions_df = fetch_submission_data(organization['org_code'], admin_timezone)
+        submissions_df = fetch_submission_data()
         
         # Calculate today's metrics based on the admin's timezone
         today = datetime.now(pytz.timezone(admin_timezone)).date()

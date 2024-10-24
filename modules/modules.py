@@ -6,6 +6,8 @@ import base64
 import requests
 from google.cloud import secretmanager
 import json
+import pytz
+from datetime import datetime
 
 def get_secret():
     client = secretmanager.SecretManagerServiceClient()
@@ -19,6 +21,17 @@ api = secrets['api_key']
 # #Initialize OpenAI client and set default assistant_id
 client = OpenAI(api_key=api)
 
+def convert_to_timezone(utc_time: datetime, timezone_str: str):
+    """Converts a UTC datetime to the specified timezone."""
+    try:
+        # Ensure the input time is in UTC
+        utc_time = utc_time.replace(tzinfo=pytz.utc)
+        # Convert to the target timezone
+        target_timezone = pytz.timezone(timezone_str)
+        return utc_time.astimezone(target_timezone)
+    except Exception as e:
+        print(f"Error converting time: {e}")
+        return utc_time  # Return the original UTC time in case of error
 
 
 def run_assistant(assistant_id, txt, return_content=False, display_chat=True, user_name="user", assistant_name="assistant"):

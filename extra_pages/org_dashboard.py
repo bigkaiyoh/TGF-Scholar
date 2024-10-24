@@ -22,16 +22,14 @@ def display_metrics(registrations_this_month, active_users):
             </div>
             """, unsafe_allow_html=True)
 
-def show_org_dashboard(organization):
+def show_org_dashboard():
     """Basic Organization Dashboard."""
     apply_custom_css()
-    display_org_header(organization)
+    display_org_header()
     
-    # Fetch the admin's timezone (default to UTC if not set)
-    admin_timezone_str = organization.get('timezone', 'UTC')
 
     # Fetch user data and update statuses
-    user_data, registrations_this_month, active_users = get_user_data(organization['org_code'], admin_timezone_str)
+    user_data, registrations_this_month, active_users = get_user_data()
 
 
     # Display metrics

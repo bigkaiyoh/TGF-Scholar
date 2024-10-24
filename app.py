@@ -160,13 +160,12 @@ def main():
     # Organization Dashboard
     if 'organization' in st.session_state and st.session_state.organization:
         add_footer()
-        org = st.session_state.organization
-    
+
         # Decide which dashboard to show based on the 'full_dashboard' setting
-        if org.get('full_dashboard', False):
-            full_org_dashboard(org)
+        if st.session_state.organization.get('full_dashboard', False):
+            full_org_dashboard() 
         else:
-            show_org_dashboard(org)
+            show_org_dashboard() 
 
     # User Dashboard
     elif 'user' in st.session_state and st.session_state.user:

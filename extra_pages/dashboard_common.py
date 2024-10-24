@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import pytz
 from setup.firebase_setup import db
+from modules.modules import convert_to_timezone
 
 # Custom CSS for styling the dashboard
 def apply_custom_css():
@@ -39,18 +40,23 @@ def apply_custom_css():
     """, unsafe_allow_html=True)
 
 # Display header for the organization
-def display_org_header(organization):
+def display_org_header():
+    organization = st.session_state.organization
     st.markdown(f"<h1 class='big-font'>{organization['org_name']}</h1>", unsafe_allow_html=True)
     st.markdown(f"<p><strong>教育機関コード:</strong> {organization['org_code']}</p>", unsafe_allow_html=True)
 
 # Fetch user data and update statuses
-def get_user_data(org_code, admin_timezone_str="UTC"):
+def get_user_data():
     """Fetch user data, calculate metrics, and update user statuses if necessary."""
+    organization = st.session_state.organization
+    org_code = organization['org_code']
+    admin_timezone_str = organization.get('timezone', 'UTC')
+    
     users_ref = db.collection('users').where('org_code', '==', org_code)
     users = users_ref.stream()
 
-    admin_timezone = pytz.timezone(admin_timezone_str)
-    current_date_in_admin_timezone = datetime.now(admin_timezone)  # Current date in admin's timezone
+    # Get the current date in admin's timezone
+    current_date_in_admin_timezone = convert_to_timezone(datetime.now(pytz.utc), admin_timezone_str)
 
     registrations_this_month = 0
     active_users = 0
@@ -62,8 +68,9 @@ def get_user_data(org_code, admin_timezone_str="UTC"):
         user_id = user.id
         register_at = user_dict.get('registerAt')
         
+        # Convert registration date to admin's timezone
         if isinstance(register_at, datetime):
-            register_at = register_at.replace(tzinfo=pytz.utc).astimezone(admin_timezone)
+            register_at = convert_to_timezone(register_at, admin_timezone_str)
 
         # Check if the user registered this month in admin's timezone
         if register_at and register_at.month == current_date_in_admin_timezone.month and register_at.year == current_date_in_admin_timezone.year:
@@ -91,8 +98,9 @@ def get_user_data(org_code, admin_timezone_str="UTC"):
             for submission in submission_ref:
                 sub_data = submission.to_dict()
                 submit_time = sub_data.get('submit_time')
+
                 if submit_time:
-                    submit_time = submit_time.replace(tzinfo=pytz.utc).astimezone(admin_timezone)
+                    submit_time = convert_to_timezone(submit_time, admin_timezone_str)
                     total_submissions += 1
                     if submit_time.date() == today_in_admin_timezone:
                         todays_submissions += 1
