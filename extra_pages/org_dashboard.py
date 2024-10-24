@@ -27,8 +27,12 @@ def show_org_dashboard(organization):
     apply_custom_css()
     display_org_header(organization)
     
+    # Fetch the admin's timezone (default to UTC if not set)
+    admin_timezone_str = organization.get('timezone', 'UTC')
+
     # Fetch user data and update statuses
-    user_data, registrations_this_month, active_users = get_user_data(organization['org_code'])
+    user_data, registrations_this_month, active_users = get_user_data(organization['org_code'], admin_timezone_str)
+
 
     # Display metrics
     display_metrics(registrations_this_month, active_users)

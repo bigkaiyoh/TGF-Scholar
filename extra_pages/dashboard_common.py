@@ -44,12 +44,14 @@ def display_org_header(organization):
     st.markdown(f"<p><strong>教育機関コード:</strong> {organization['org_code']}</p>", unsafe_allow_html=True)
 
 # Fetch user data and update statuses
-def get_user_data(org_code):
+def get_user_data(org_code, admin_timezone_str="UTC"):
     """Fetch user data, calculate metrics, and update user statuses if necessary."""
     users_ref = db.collection('users').where('org_code', '==', org_code)
     users = users_ref.stream()
-    
-    current_date = datetime.now(pytz.utc)
+
+    admin_timezone = pytz.timezone(admin_timezone_str)
+    current_date_in_admin_timezone = datetime.now(admin_timezone)  # Current date in admin's timezone
+
     registrations_this_month = 0
     active_users = 0
     user_data = []
@@ -61,15 +63,15 @@ def get_user_data(org_code):
         register_at = user_dict.get('registerAt')
         
         if isinstance(register_at, datetime):
-            register_at = register_at.replace(tzinfo=pytz.utc)
+            register_at = register_at.replace(tzinfo=pytz.utc).astimezone(admin_timezone)
 
-        # Check if the user registered this month
-        if register_at and register_at.month == current_date.month and register_at.year == current_date.year:
+        # Check if the user registered this month in admin's timezone
+        if register_at and register_at.month == current_date_in_admin_timezone.month and register_at.year == current_date_in_admin_timezone.year:
             registrations_this_month += 1
 
-        # Determine the user's expiration date and status
+        # Determine the user's expiration date and status, converting to admin's timezone
         expiration_date = register_at + timedelta(days=30) if register_at else None
-        status = 'Active' if expiration_date and current_date < expiration_date else 'Inactive'
+        status = 'Active' if expiration_date and current_date_in_admin_timezone < expiration_date else 'Inactive'
         
         # If the status has changed, update it in Firestore using batch
         if status != user_dict.get('status'):
@@ -80,19 +82,19 @@ def get_user_data(org_code):
         if status == 'Active':
             active_users += 1
 
-            # Calculate total submissions and today's submissions
+            # Calculate total submissions and today's submissions in admin's timezone
             submission_ref = db.collection('users').document(user_id).collection('submissions').stream()
             total_submissions = 0
             todays_submissions = 0
-            today = datetime.now(pytz.utc).date()  # Today's date in UTC
+            today_in_admin_timezone = current_date_in_admin_timezone.date()  # Admin's local date
 
             for submission in submission_ref:
                 sub_data = submission.to_dict()
                 submit_time = sub_data.get('submit_time')
                 if submit_time:
-                    submit_time = submit_time.replace(tzinfo=pytz.utc)
+                    submit_time = submit_time.replace(tzinfo=pytz.utc).astimezone(admin_timezone)
                     total_submissions += 1
-                    if submit_time.date() == today:
+                    if submit_time.date() == today_in_admin_timezone:
                         todays_submissions += 1
 
             user_data.append({
