@@ -131,17 +131,17 @@ def save_submission(user_id, txt, uni_name, faculty_name, department_name):
         org_code = user_data.get('org_code', '')
         user_timezone = user_data.get('timezone', 'UTC')
 
-        # Use timezone-aware datetime for 'submit_time'
-        submit_time = datetime.now(pytz.timezone(user_timezone))
+        # Always save 'submit_time' in UTC
+        submit_time = datetime.now(pytz.utc)
 
         user_ref.collection('submissions').add({
             'text': txt,
-            'submit_time': submit_time,
+            'submit_time': submit_time,  # UTC time
             'university': uni_name,
             'faculty': faculty_name,
             'department': department_name if department_name else "",
             'org_code': org_code,
-            'timezone': user_timezone,
+            'timezone': user_timezone,  # You can still store the user's timezone for reference
             'feedback': st.session_state.feedback
         })
         return True
