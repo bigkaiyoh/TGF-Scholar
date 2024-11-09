@@ -36,13 +36,23 @@ def login_user(user_id, password):
         
         user_data = user_ref.to_dict()
         if bcrypt.checkpw(password.encode(), user_data['password'].encode()):
+            # Fetch organization details to get active_days
+            org_code = user_data['org_code']
+            org_ref = db.collection('organizations').document(org_code).get()
+            
+            if not org_ref.exists:
+                return None, "教育機関が見つかりません"
+
+            org_data = org_ref.to_dict()
+            active_days = org_data.get('active_days', 30)  # Default to 30 if not specified
+
             # Check if the user is still within the 30-day active period
             register_at = user_data.get('registerAt')
             if register_at is None:
                 return None, "登録日が見つかりません"
             
             register_at = register_at.replace(tzinfo=pytz.utc)
-            status, days_left = check_user_status(register_at)
+            status, days_left = check_user_status(register_at, active_days)
 
             # Update user status in the database only if it has changed
             if status != user_data['status']:
@@ -65,12 +75,12 @@ def login_user(user_id, password):
         return None, f"ログインに失敗しました: {str(e)}"
 
 # Check if the user is still active
-def check_user_status(register_at):
-    """Calculates the user's status based on the registration date."""
+def check_user_status(register_at, active_days=30):
+    """Calculates the user's status based on the registration date and organization's active period."""
     now = datetime.now(pytz.utc)  # Use UTC timezone-aware datetime
     days_passed = (now - register_at).days
-    if days_passed <= 30:
-        return 'Active', 30 - days_passed
+    if days_passed <= active_days:
+        return 'Active', active_days - days_passed
     else:
         return 'Inactive', 0
 
